@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.netlify.magnificent_brigadeiros_b262b8.twa",
+    "sha256_cert_fingerprints": ["9F:F0:D0:73:7A:D1:E9:DF:69:B9:E1:99:4F:BA:0E:45:C8:82:CF:A0:66:82:BA:A0:67:A4:9B:25:55:2F:B4:85"]
+  }
+}]
