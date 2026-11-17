@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Gacha Forge - Criador de Personagem por Roletas</title>
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Orbitron:wght@700;800;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a12;
+            color: #f1f5f9;
+            background-image: 
+                radial-gradient(circle at 12% 18%, rgba(124, 58, 237, 0.14) 0%, transparent 42%),
+                radial-gradient(circle at 88% 82%, rgba(6, 182, 212, 0.12) 0%, transparent 42%);
+        }
+        .font-anime { font-family: 'Orbitron', sans-serif; }
+        .font-tech { font-family: 'Rajdhani', sans-serif; }
+        .font-code { font-family: 'JetBrains Mono', monospace; }
+        .card-surface { background-color: #131322; }
+        .neon-border-purple { box-shadow: 0 0 22px rgba(139, 92, 246, 0.22); }
+        .neon-border-gold { box-shadow: 0 0 20px rgba(234, 179, 8, 0.3); }
+        .wheel-pointer { filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.85)); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a12; }
+        ::-webkit-scrollbar-thumb { background: #2e264f; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6d28d9; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Cabeçalho Superior -->
+    <header class="border-b border-purple-500/20 bg-[#0a0a12]/90 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-cyan-500 to-amber-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-anime text-lg sm:text-xl font-black tracking-wider bg-gradient-to-r from-purple-400 via-cyan-300 to-amber-400 bg-clip-text text-transparent">
+                        ANIME GACHA FORGE
+                    </h1>
+                    <p class="text-xs text-slate-400">16 Roletas Visíveis • Árvore de Habilidades • 8 Atributos</p>
+                </div>
+            </div>
+
+            <!-- Controles Globais -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button id="soundToggleBtn" onclick="toggleSound()" class="px-3 py-2 rounded-xl bg-[#131322] border border-slate-700 hover:border-purple-500 text-slate-300 transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer" title="Ativar/Desativar Som">
+                    <span id="soundIcon">🔊</span>
+                    <span class="hidden sm:inline" id="soundLabel">Som</span>
+                </button>
+                <button onclick="unlockAllWheels()" class="px-3 py-2 rounded-xl bg-[#131322] border border-slate-700 hover:border-amber-500/50 text-slate-300 hover:text-amber-300 transition text-xs font-semibold cursor-pointer">
+                    🔓 Destravar Tudo
+                </button>
+                <button onclick="resetCharacter()" class="px-3 py-2 rounded-xl bg-[#131322] border border-slate-700 hover:border-rose-500/50 text-slate-300 hover:text-rose-300 transition text-xs font-semibold cursor-pointer">
+                    ↺ Resetar
+                </button>
+                <button id="spinAllBtn" onclick="spinAllRoulettes()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-600/30 active:scale-95 transition flex items-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>GIRAR TUDO (16)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Notificação Toast -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Layout Principal -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 py-5 flex flex-col lg:flex-row gap-6 items-start">
+        
+        <!-- COLUNA ESQUERDA: AVATAR + FICHA DO PERSONAGEM EM TEMPO REAL -->
+        <aside class="w-full lg:w-[395px] lg:shrink-0 lg:sticky lg:top-20">
+            <div class="rounded-2xl card-surface border border-purple-500/35 p-4 neon-border-purple backdrop-blur-md flex flex-col gap-3.5">
+                
+                <!-- Nome, Título & Rank -->
+                <div class="flex items-start justify-between border-b border-slate-800/90 pb-3.5 gap-2.5">
+                    <div class="flex-1 min-w-0">
+                        <label for="charNameInput" class="text-[10px] uppercase tracking-wider text-purple-400 font-bold block mb-1">Nome do Personagem</label>
+                        <input id="charNameInput" type="text" value="Kaito Kazama" placeholder="Digite o nome..." 
+                            class="w-full bg-[#0a0a12] border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-1.5 text-sm font-bold text-white outline-none transition">
+                        <div class="mt-1.5">
+                            <span id="autoTitleBadge" class="inline-block max-w-full truncate text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/35 text-cyan-300 font-semibold">
+                                « Viajante Sem Destino »
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center px-3 py-1.5 rounded-2xl bg-gradient-to-b from-slate-800/90 to-[#0a0a12] border border-amber-500/45 neon-border-gold min-w-[78px]">
+                        <span class="text-[9px] uppercase tracking-widest text-amber-300 font-bold">RANK</span>
+                        <span id="overallRankBadge" class="font-anime text-xl font-black bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500 bg-clip-text text-transparent">
+                            —
+                        </span>
+                        <span id="rankTitleLabel" class="text-[9px] text-slate-400 font-code">Iniciante</span>
+                    </div>
+                </div>
+
+                <!-- AVATAR DINÂMICO EM CANVAS -->
+                <div class="w-full rounded-xl bg-[#0a0a12] border border-slate-800 p-2 flex flex-col items-center relative overflow-hidden">
+                    <div class="absolute top-2 left-2 z-10 flex items-center gap-1 bg-slate-900/80 px-2 py-0.5 rounded-lg border border-slate-700 text-[10px] text-slate-300 font-semibold">
+                        <span>👤 Avatar Gacha</span>
+                    </div>
+                    <div class="w-full h-[180px] flex items-center justify-center">
+                        <canvas id="avatarCanvas" width="220" height="180" class="max-w-full h-auto"></canvas>
+                    </div>
+                    <div id="avatarCaption" class="text-[10px] text-purple-300 font-code mt-1 text-center truncate w-full">
+                        Aguardando sorteio de identidade...
+                    </div>
+                </div>
+
+                <!-- Cards Compactos de Identidade (Raça, Família, Classe) -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="rounded-xl bg-[#0a0a12]/90 border border-slate-800 p-2">
+                        <span class="text-[9px] uppercase tracking-wider text-slate-400 block">Raça</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <span id="sheetRaceIcon" class="text-sm">🧬</span>
+                            <span id="sheetRaceName" class="font-bold text-[11px] text-purple-200 truncate">—</span>
+                        </div>
+                        <p id="sheetRaceBonus" class="text-[9px] text-emerald-400 mt-0.5 truncate">—</p>
+                    </div>
+                    <div class="rounded-xl bg-[#0a0a12]/90 border border-slate-800 p-2">
+                        <span class="text-[9px] uppercase tracking-wider text-slate-400 block">Família / Clã</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <span id="sheetFamilyIcon" class="text-sm">🏯</span>
+                            <span id="sheetFamilyName" class="font-bold text-[11px] text-cyan-200 truncate">—</span>
+                        </div>
+                        <p id="sheetFamilyBonus" class="text-[9px] text-emerald-400 mt-0.5 truncate">—</p>
+                    </div>
+                    <div class="rounded-xl bg-[#0a0a12]/90 border border-slate-800 p-2">
+                        <span class="text-[9px] uppercase tracking-wider text-slate-400 block">Classe</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <span id="sheetClassIcon" class="text-sm">⚔️</span>
+                            <span id="sheetClassName" class="font-bold text-[11px] text-amber-200 truncate">—</span>
+                        </div>
+                        <p id="sheetClassBonus" class="text-[9px] text-emerald-400 mt-0.5 truncate">—</p>
+                    </div>
+                </div>
+
+                <!-- Cards Compactos de Poder Base & Habilidades (1, 2) & Armas/Maldição -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="rounded-xl bg-gradient-to-br from-purple-950/45 to-[#0a0a12] border border-purple-500/30 p-2">
+                        <div class="flex items-center gap-1">
+                            <span id="sheetPower1Icon" class="text-xs">✨</span>
+                            <span id="sheetPower1Name" class="font-bold text-[11px] text-purple-200 truncate">Poder Base</span>
+                        </div>
+                        <p id="sheetPower1Bonus" class="text-[9px] font-semibold text-purple-300 mt-0.5 truncate">Aguardando giro</p>
+                    </div>
+                    <div class="rounded-xl bg-gradient-to-br from-amber-950/35 to-[#0a0a12] border border-amber-500/30 p-2">
+                        <div class="flex items-center gap-1">
+                            <span id="sheetPower2Icon" class="text-xs">🔥</span>
+                            <span id="sheetPower2Name" class="font-bold text-[11px] text-amber-200 truncate">Hab. Primária</span>
+                        </div>
+                        <p id="sheetPower2Bonus" class="text-[9px] font-semibold text-amber-300 mt-0.5 truncate">Aguardando giro</p>
+                    </div>
+                    <div class="rounded-xl bg-gradient-to-br from-emerald-950/35 to-[#0a0a12] border border-emerald-500/30 p-2">
+                        <div class="flex items-center gap-1">
+                            <span id="sheetPower3Icon" class="text-xs">🌀</span>
+                            <span id="sheetPower3Name" class="font-bold text-[11px] text-emerald-200 truncate">Hab. Secundária</span>
+                        </div>
+                        <p id="sheetPower3Bonus" class="text-[9px] font-semibold text-emerald-300 mt-0.5 truncate">Aguardando giro</p>
+                    </div>
+                    <div class="rounded-xl bg-gradient-to-br from-cyan-950/35 to-[#0a0a12] border border-cyan-500/30 p-2">
+                        <div class="flex items-center gap-1">
+                            <span id="sheetWeaponIcon" class="text-xs">🗡️</span>
+                            <span id="sheetWeaponName" class="font-bold text-[11px] text-cyan-200 truncate">Arma / Relíquia</span>
+                        </div>
+                        <p id="sheetWeaponBonus" class="text-[9px] font-semibold text-cyan-300 mt-0.5 truncate">Aguardando giro</p>
+                    </div>
+                    <div class="col-span-2 rounded-xl bg-gradient-to-br from-rose-950/40 to-[#0a0a12] border border-rose-500/30 p-2">
+                        <div class="flex items-center gap-1">
+                            <span id="sheetWeaknessIcon" class="text-xs">⛓️</span>
+                            <span id="sheetWeaknessName" class="font-bold text-[11px] text-rose-200 truncate">Fraqueza / Maldição</span>
+                        </div>
+                        <p id="sheetWeaknessBonus" class="text-[9px] font-semibold text-rose-300 mt-0.5 truncate">Aguardando giro</p>
+                    </div>
+                </div>
+
+                <!-- Painel dos 8 Atributos -->
+                <div class="flex flex-col gap-2.5 bg-[#0a0a12]/90 rounded-xl p-3 border border-slate-800">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300">8 Atributos</span>
+                            <div class="flex bg-[#131322] rounded-lg p-0.5 border border-slate-800">
+                                <button id="viewBarsBtn" onclick="toggleStatView('bars')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-600 text-white cursor-pointer">Barras</button>
+                                <button id="viewRadarBtn" onclick="toggleStatView('radar')" class="px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-400 hover:text-white cursor-pointer">Radar</button>
+                            </div>
+                        </div>
+                        <span class="text-xs font-anime font-bold text-amber-400">
+                            BP: <span id="totalPowerValue">0</span>
+                        </span>
+                    </div>
+
+                    <div id="attributesDisplayList" class="flex flex-col gap-2"></div>
+
+                    <div id="radarChartContainer" class="hidden flex flex-col items-center justify-center py-1">
+                        <svg id="statsRadarSvg" viewBox="0 0 300 265" class="w-full max-w-[290px] h-auto"></svg>
+                        <p class="text-[10px] text-slate-400">Radar Octogonal dos 8 Atributos (Escala 0–200)</p>
+                    </div>
+                </div>
+
+                <!-- Botão Copiar Ficha -->
+                <button onclick="copyCharacterSheet()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/20 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                    </svg>
+                    <span>COPIAR FICHA COMPLETA</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- COLUNA DIREITA: AS 16 ROLETAS -->
+        <section class="flex-1 w-full flex flex-col gap-7">
+            <div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                    <h2 class="font-anime text-xs sm:text-sm uppercase tracking-widest text-purple-300 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-400"></span>
+                        Identidade, Linhagem & Arsenal (8 Roletas)
+                    </h2>
+                    <button onclick="spinCategory('identity')" class="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/35 border border-purple-500/40 text-purple-200 text-xs font-bold transition cursor-pointer">
+                        ⚡ Girar Apenas Identidade
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5" id="identityWheelsGrid"></div>
+            </div>
+
+            <div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                    <h2 class="font-anime text-xs sm:text-sm uppercase tracking-widest text-amber-300 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-300"></span>
+                        Roletas de Atributos Base — Tiers F até Z+ (8 Roletas)
+                    </h2>
+                    <button onclick="spinCategory('stat')" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-bold transition cursor-pointer">
+                        📊 Girar Apenas Atributos
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5" id="statsWheelsGrid"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="border-t border-slate-900 py-4 text-center text-xs text-slate-500 mt-6">
+        Anime Gacha Forge • 16 Roletas Simultâneas • Árvore Dinâmica de Poderes
+    </footer>
+
+    <script>
+        function makeBonus(b = {}) {
+            return {
+                qi: b.qi || 0,
+                battleIq: b.battleIq || 0,
+                str: b.str || 0,
+                spd: b.spd || 0,
+                res: b.res || 0,
+                energy: b.energy || 0,
+                ctrl: b.ctrl || 0,
+                luck: b.luck || 0
+            };
+        }
+
+        const STAT_SHORT_NAMES = {
+            qi: "QI",
+            battleIq: "QI Bat.",
+            str: "Força",
+            spd: "Vel.",
+            res: "Resist.",
+            energy: "Energia",
+            ctrl: "Controle",
+            luck: "Sorte"
+        };
+
+        function formatBonusSummary(bonusObj) {
+            const parts = [];
+            for (const [k, v] of Object.entries(bonusObj)) {
+                if (v !== 0) {
+                    parts.push(`${v > 0 ? '+' + v : v} ${STAT_SHORT_NAMES[k]}`);
+                }
+            }
+            return parts.length > 0 ? parts.join(', ') : 'Equilibrado';
+        }
+
+        const RACES_DATA = [
+            { name: "Humano", icon: "🧑", color: "#3b82f6", titlePrefix: "Humano", bonus: makeBonus({ qi: 15, battleIq: 15, ctrl: 15, luck: 20 }) },
+            { name: "Saiyajin", icon: "🐒", color: "#f59e0b", titlePrefix: "Saiyajin", bonus: makeBonus({ battleIq: 20, str: 30, spd: 20, res: 20, energy: 15 }) },
+            { name: "Demônio Superior", icon: "😈", color: "#ef4444", titlePrefix: "Demônio", bonus: makeBonus({ str: 25, res: 25, energy: 25, spd: 10, luck: -5 }) },
+            { name: "Anjo Caído", icon: "🖤", color: "#6366f1", titlePrefix: "Anjo Caído", bonus: makeBonus({ energy: 30, ctrl: 25, spd: 20, battleIq: 15 }) },
+            { name: "Meio-Oni", icon: "👹", color: "#dc2626", titlePrefix: "Oni", bonus: makeBonus({ str: 30, res: 25, battleIq: 15, qi: -5 }) },
+            { name: "Elfo Ancestral", icon: "🧝", color: "#10b981", titlePrefix: "Elfo", bonus: makeBonus({ qi: 25, spd: 20, energy: 25, ctrl: 25, res: -5 }) },
+            { name: "Ciborgue", icon: "🤖", color: "#06b6d4", titlePrefix: "Ciborgue", bonus: makeBonus({ qi: 30, res: 25, str: 20, ctrl: 15, energy: -10 }) },
+            { name: "Vampiro Nobre", icon: "🧛", color: "#be123c", titlePrefix: "Vampiro", bonus: makeBonus({ spd: 25, str: 15, energy: 20, luck: 15, res: 10 }) },
+            { name: "Dragão Humanoide", icon: "🐉", color: "#d97706", titlePrefix: "Draconiano", bonus: makeBonus({ str: 30, res: 30, energy: 25, battleIq: 10 }) },
+            { name: "Espírito Celestial", icon: "👼", color: "#fde047", titlePrefix: "Celestial", bonus: makeBonus({ energy: 30, ctrl: 30, spd: 20, luck: 20 }) },
+            { name: "Ghoul", icon: "🩸", color: "#9f1239", titlePrefix: "Ghoul", bonus: makeBonus({ str: 20, spd: 25, res: 20, battleIq: 15 }) },
+            { name: "Shinigami", icon: "💀", color: "#7c3aed", titlePrefix: "Shinigami", bonus: makeBonus({ battleIq: 25, spd: 25, energy: 25, ctrl: 20 }) },
+            { name: "Homúnculo", icon: "🧪", color: "#ec4899", titlePrefix: "Homúnculo", bonus: makeBonus({ res: 25, str: 20, battleIq: 15, luck: -10 }) },
+            { name: "Gigante", icon: "🏔️", color: "#78716c", titlePrefix: "Gigante", bonus: makeBonus({ str: 35, res: 35, spd: -15 }) },
+            { name: "Bestial / Yokai", icon: "🦊", color: "#a855f7", titlePrefix: "Yokai", bonus: makeBonus({ spd: 25, energy: 20, ctrl: 20, luck: 20 }) },
+            { name: "Titã", icon: "🗿", color: "#57534e", titlePrefix: "Titã", bonus: makeBonus({ str: 40, res: 40, spd: -15, ctrl: -10 }) },
+            { name: "Maldição Grau Esp.", icon: "👁️‍🗨️", color: "#4c1d95", titlePrefix: "Maldição", bonus: makeBonus({ energy: 35, ctrl: 25, res: 20, luck: -10 }) },
+            { name: "Alienígena", icon: "👽", color: "#14b8a6", titlePrefix: "Extraterrestre", bonus: makeBonus({ qi: 30, energy: 25, ctrl: 20, spd: 15 }) },
+            { name: "Divindade Menor", icon: "☀️", color: "#eab308", titlePrefix: "Semideus", bonus: makeBonus({ qi: 15, battleIq: 15, str: 20, spd: 20, res: 20, energy: 25, ctrl: 20, luck: 20 }) },
+            { name: "Entidade Cósmica", icon: "🌌", color: "#8b5cf6", titlePrefix: "Entidade", bonus: makeBonus({ energy: 40, ctrl: 35, qi: 25, luck: 20 }) },
+            { name: "Fada Real", icon: "🧚", color: "#34d399", titlePrefix: "Fada", bonus: makeBonus({ energy: 35, ctrl: 30, spd: 25, str: -15 }) },
+            { name: "Nephilim", icon: "⚖️", color: "#facc15", titlePrefix: "Nephilim", bonus: makeBonus({ str: 25, energy: 25, spd: 20, res: 20, ctrl: 15 }) },
+            { name: "Golem de Cristal", icon: "💎", color: "#22d3ee", titlePrefix: "Golem", bonus: makeBonus({ res: 45, str: 25, spd: -20, energy: 15 }) },
+            { name: "Kitsune 9 Caudas", icon: "🦊", color: "#f97316", titlePrefix: "Kitsune", bonus: makeBonus({ qi: 25, energy: 30, ctrl: 25, luck: 25 }) },
+            { name: "Licantropo Alfa", icon: "🐺", color: "#64748b", titlePrefix: "Licantropo", bonus: makeBonus({ str: 30, spd: 30, res: 20, qi: -10 }) },
+            { name: "Tritão Abissal", icon: "🔱", color: "#0284c7", titlePrefix: "Tritão", bonus: makeBonus({ str: 25, res: 25, spd: 20, energy: 15 }) },
+            { name: "Espectro / Fantasma", icon: "👻", color: "#94a3b8", titlePrefix: "Espectro", bonus: makeBonus({ spd: 30, ctrl: 30, energy: 20, str: -15 }) },
+            { name: "Anão Forjador", icon: "🔨", color: "#b45309", titlePrefix: "Anão", bonus: makeBonus({ qi: 25, res: 35, str: 25, spd: -15 }) },
+            { name: "Androide Infinito", icon: "🦾", color: "#0ea5e9", titlePrefix: "Androide", bonus: makeBonus({ qi: 30, battleIq: 25, str: 25, spd: 25, res: 25 }) },
+            { name: "Deus da Destruição", icon: "🟣", color: "#6b21a8", titlePrefix: "Destruidor", bonus: makeBonus({ str: 35, energy: 40, spd: 25, ctrl: 20, luck: -10 }) }
+        ];
+
+        const FAMILIES_DATA = [
+            { name: "Clã Uchiha", icon: "👁️", color: "#dc2626", suffix: "Uchiha", bonus: makeBonus({ battleIq: 25, ctrl: 25, energy: 20, luck: -5 }) },
+            { name: "Família Zoldyck", icon: "⚡", color: "#475569", suffix: "Zoldyck", bonus: makeBonus({ spd: 30, battleIq: 25, res: 20 }) },
+            { name: "Clã Gojo", icon: "♾️", color: "#38bdf8", suffix: "Gojo", bonus: makeBonus({ energy: 35, ctrl: 35, qi: 20 }) },
+            { name: "Clã Zenin", icon: "⚔️", color: "#15803d", suffix: "Zenin", bonus: makeBonus({ str: 30, spd: 25, battleIq: 20, energy: -10 }) },
+            { name: "Clã Ackermann", icon: "🧣", color: "#334155", suffix: "Ackermann", bonus: makeBonus({ str: 30, spd: 30, battleIq: 25 }) },
+            { name: "Clã Uzumaki", icon: "🍥", color: "#f97316", suffix: "Uzumaki", bonus: makeBonus({ energy: 40, res: 25, luck: 15 }) },
+            { name: "Clã Hyuuga", icon: "⚪", color: "#94a3b8", suffix: "Hyuuga", bonus: makeBonus({ ctrl: 35, battleIq: 25, qi: 15 }) },
+            { name: "Família Vinsmoke", icon: "🧬", color: "#eab308", suffix: "Vinsmoke", bonus: makeBonus({ spd: 25, res: 25, str: 20, qi: 10 }) },
+            { name: "Clã Kamado", icon: "☀️", color: "#b91c1c", suffix: "Kamado", bonus: makeBonus({ res: 25, energy: 25, luck: 20, ctrl: 15 }) },
+            { name: "Família Dragneel", icon: "🔥", color: "#ef4444", suffix: "Dragneel", bonus: makeBonus({ str: 30, energy: 30, qi: -10 }) },
+            { name: "Clã Gremory", icon: "🦇", color: "#991b1b", suffix: "Gremory", bonus: makeBonus({ energy: 30, luck: 25, ctrl: 20 }) },
+            { name: "Família Pendragon", icon: "👑", color: "#ca8a04", suffix: "Pendragon", bonus: makeBonus({ str: 25, res: 25, luck: 25, battleIq: 15 }) },
+            { name: "Clã Kurosaki", icon: "🌑", color: "#1e1b4b", suffix: "Kurosaki", bonus: makeBonus({ str: 25, spd: 25, energy: 30 }) },
+            { name: "Família Elric", icon: "⚗️", color: "#d97706", suffix: "Elric", bonus: makeBonus({ qi: 40, ctrl: 30, res: -10 }) },
+            { name: "Clã Senju", icon: "🌲", color: "#16a34a", suffix: "Senju", bonus: makeBonus({ res: 30, energy: 30, str: 20 }) },
+            { name: "Família Yeager", icon: "🗽", color: "#57534e", suffix: "Yeager", bonus: makeBonus({ str: 30, res: 30, luck: -15 }) },
+            { name: "Clã Freecss", icon: "🎣", color: "#10b981", suffix: "Freecss", bonus: makeBonus({ battleIq: 25, luck: 30, energy: 25 }) },
+            { name: "Clã D. (Vontade)", icon: "🏴‍☠️", color: "#7c3aed", suffix: "D.", bonus: makeBonus({ luck: 35, res: 25, energy: 25 }) },
+            { name: "Família Belmont", icon: "✝️", color: "#0284c7", suffix: "Belmont", bonus: makeBonus({ battleIq: 25, str: 20, ctrl: 20, luck: 15 }) },
+            { name: "Sem Clã / Órfão", icon: "🗡️", color: "#64748b", suffix: "Sem Clã", bonus: makeBonus({ battleIq: 25, luck: 25, res: 20 }) }
+        ];
+
+        const CLASSES_DATA = [
+            { name: "Espadachim", icon: "⚔️", color: "#ef4444", bonus: makeBonus({ battleIq: 20, str: 15, spd: 20, ctrl: 15 }) },
+            { name: "Mago Arcano", icon: "🔮", color: "#8b5cf6", bonus: makeBonus({ qi: 25, energy: 30, ctrl: 25, res: -5 }) },
+            { name: "Assassino", icon: "🗡️", color: "#0f766e", bonus: makeBonus({ spd: 30, battleIq: 25, ctrl: 15, res: -10 }) },
+            { name: "Berserker", icon: "🪓", color: "#dc2626", bonus: makeBonus({ str: 35, res: 25, spd: 15, qi: -15, ctrl: -10 }) },
+            { name: "Necromante", icon: "⚰️", color: "#581c87", bonus: makeBonus({ qi: 25, energy: 30, ctrl: 20, luck: -5 }) },
+            { name: "Artista Marcial", icon: "🥋", color: "#f97316", bonus: makeBonus({ battleIq: 25, str: 20, spd: 20, ctrl: 25 }) },
+            { name: "Invocador", icon: "📜", color: "#a855f7", bonus: makeBonus({ qi: 25, energy: 25, ctrl: 20, luck: 15 }) },
+            { name: "Alquimista", icon: "⚗️", color: "#10b981", bonus: makeBonus({ qi: 35, ctrl: 25, luck: 15, str: -5 }) },
+            { name: "Atirador", icon: "🏹", color: "#2563eb", bonus: makeBonus({ qi: 20, battleIq: 25, ctrl: 25, luck: 15 }) },
+            { name: "Paladino", icon: "⚜️", color: "#f59e0b", bonus: makeBonus({ str: 20, res: 25, energy: 15, luck: 20 }) },
+            { name: "Monge Espiritual", icon: "📿", color: "#eab308", bonus: makeBonus({ ctrl: 30, res: 20, energy: 20, battleIq: 15 }) },
+            { name: "Ilusionista", icon: "🎭", color: "#ec4899", bonus: makeBonus({ qi: 25, ctrl: 30, luck: 25, str: -10 }) },
+            { name: "Caçador Demônios", icon: "🪓", color: "#991b1b", bonus: makeBonus({ battleIq: 25, str: 20, spd: 20, res: 15 }) },
+            { name: "Samurai", icon: "⛩️", color: "#be123c", bonus: makeBonus({ battleIq: 25, str: 20, spd: 25, ctrl: 20 }) },
+            { name: "Ninja / Shinobi", icon: "🥷", color: "#1e293b", bonus: makeBonus({ spd: 30, battleIq: 25, ctrl: 20 }) },
+            { name: "Domador de Feras", icon: "🐾", color: "#84cc16", bonus: makeBonus({ battleIq: 20, res: 15, luck: 25, energy: 15 }) },
+            { name: "Tanque Guardião", icon: "🛡️", color: "#64748b", bonus: makeBonus({ res: 40, str: 20, spd: -10, luck: 10 }) },
+            { name: "Estrategista", icon: "♟️", color: "#0284c7", bonus: makeBonus({ qi: 35, battleIq: 30, ctrl: 15, str: -10 }) },
+            { name: "Hacker Mágico", icon: "💻", color: "#06b6d4", bonus: makeBonus({ qi: 35, ctrl: 30, battleIq: 15, str: -10 }) },
+            { name: "Cavaleiro Dracônico", icon: "🐲", color: "#ea580c", bonus: makeBonus({ str: 25, res: 25, energy: 20, spd: 15 }) },
+            { name: "Bardo Místico", icon: "🎵", color: "#d946ef", bonus: makeBonus({ luck: 35, ctrl: 25, energy: 20, str: -10 }) },
+            { name: "Feiticeiro Negro", icon: "🌑", color: "#3b0764", bonus: makeBonus({ energy: 35, qi: 25, ctrl: 20, luck: -10 }) },
+            { name: "Mago do Tempo", icon: "⏳", color: "#4f46e5", bonus: makeBonus({ qi: 30, ctrl: 30, spd: 25, res: -10 }) },
+            { name: "Gladiador", icon: "🏟️", color: "#b91c1c", bonus: makeBonus({ str: 25, battleIq: 25, res: 20, luck: 10 }) },
+            { name: "Clérigo Sagrado", icon: "✝️", color: "#facc15", bonus: makeBonus({ energy: 30, ctrl: 25, luck: 25, str: -10 }) },
+            { name: "Xamã Ancestral", icon: "🪶", color: "#059669", bonus: makeBonus({ energy: 25, qi: 25, ctrl: 25, res: 10 }) },
+            { name: "Artífice / Ferreiro", icon: "⚙️", color: "#78716c", bonus: makeBonus({ qi: 35, str: 20, ctrl: 25, spd: -5 }) },
+            { name: "Duelista", icon: "🤺", color: "#0ea5e9", bonus: makeBonus({ spd: 25, battleIq: 30, ctrl: 20 }) },
+            { name: "Ceifador de Almas", icon: "💀", color: "#1e1b4b", bonus: makeBonus({ spd: 25, energy: 30, battleIq: 20, luck: -5 }) },
+            { name: "Imperador / Soberano", icon: "👑", color: "#ca8a04", bonus: makeBonus({ qi: 20, battleIq: 20, energy: 25, luck: 30 }) }
+        ];
+
+        // 1. PODER BASE (Define quais habilidades aparecerão nas roletas Primária e Secundária)
+        const BASE_POWERS_DATA = [
+            { id: "fogo", name: "Fogo Infernal", icon: "🔥", color: "#ef4444", suffix: "das Chamas", bonus: makeBonus({ str: 20, energy: 20, battleIq: 10 }) },
+            { id: "raio", name: "Relâmpago Negro", icon: "⚡", color: "#eab308", suffix: "do Relâmpago", bonus: makeBonus({ spd: 30, battleIq: 15, ctrl: 10 }) },
+            { id: "gelo", name: "Gelo Absoluto", icon: "❄️", color: "#38bdf8", suffix: "do Gelo Eterno", bonus: makeBonus({ ctrl: 25, qi: 15, res: 15 }) },
+            { id: "vento", name: "Vento Cortante", icon: "🌪️", color: "#2dd4bf", suffix: "da Tempestade", bonus: makeBonus({ spd: 25, ctrl: 20, battleIq: 10 }) },
+            { id: "gravidade", name: "Gravidade", icon: "🪐", color: "#6366f1", suffix: "da Gravidade", bonus: makeBonus({ res: 30, str: 20, ctrl: 10 }) },
+            { id: "luz", name: "Luz Divina", icon: "✨", color: "#fde047", suffix: "da Luz Sagrada", bonus: makeBonus({ spd: 25, energy: 20, luck: 15 }) },
+            { id: "trevas", name: "Trevas / Vazio", icon: "🌑", color: "#4c1d95", suffix: "do Vazio", bonus: makeBonus({ energy: 30, str: 20, ctrl: 15 }) },
+            { id: "sangue", name: "Sangue", icon: "🩸", color: "#e11d48", suffix: "Carmesim", bonus: makeBonus({ ctrl: 25, res: 20, energy: 15 }) },
+            { id: "veneno", name: "Veneno", icon: "☠️", color: "#84cc16", suffix: "Tóxico", bonus: makeBonus({ qi: 20, battleIq: 20, energy: 15 }) },
+            { id: "cristal", name: "Cristal", icon: "💎", color: "#06b6d4", suffix: "de Cristal", bonus: makeBonus({ res: 25, ctrl: 25, qi: 10 }) },
+            { id: "som", name: "Som / Vibração", icon: "🔊", color: "#ec4899", suffix: "do Trovão Sonoro", bonus: makeBonus({ spd: 20, battleIq: 20, ctrl: 15 }) },
+            { id: "tempo", name: "Espaço-Tempo", icon: "⏳", color: "#8b5cf6", suffix: "do Espaço-Tempo", bonus: makeBonus({ qi: 25, ctrl: 25, spd: 20 }) },
+            { id: "natureza", name: "Natureza", icon: "🌿", color: "#16a34a", suffix: "da Floresta", bonus: makeBonus({ res: 25, energy: 20, ctrl: 15 }) },
+            { id: "magma", name: "Magma", icon: "🌋", color: "#ea580c", suffix: "Vulcânico", bonus: makeBonus({ str: 30, res: 20, energy: 15 }) },
+            { id: "agua", name: "Água / Maré", icon: "🌊", color: "#0284c7", suffix: "dos Mares", bonus: makeBonus({ ctrl: 25, qi: 15, spd: 15 }) },
+            { id: "energia", name: "Energia Pura", icon: "⚪", color: "#94a3b8", suffix: "Puro", bonus: makeBonus({ str: 15, spd: 15, res: 15, ctrl: 20 }) }
+        ];
+
+        // 2. ÁRVORE DE HABILIDADES POR PODER BASE (6 Habilidades Primárias + 6 Habilidades Secundárias para CADA Poder Base)
+        const SKILL_TREES = {
+            fogo: {
+                primary: [
+                    { name: "Punhos de Fogo", icon: "🥊", color: "#ef4444", bonus: makeBonus({ str: 25, battleIq: 15 }) },
+                    { name: "Pistolas de Fogo", icon: "🔫", color: "#f97316", bonus: makeBonus({ spd: 20, ctrl: 20 }) },
+                    { name: "Lâmina Flamejante", icon: "🗡️", color: "#dc2626", bonus: makeBonus({ str: 20, spd: 15 }) },
+                    { name: "Sopro do Dragão", icon: "🐉", color: "#ea580c", bonus: makeBonus({ energy: 25, str: 15 }) },
+                    { name: "Passo Ígneo", icon: "👟", color: "#f59e0b", bonus: makeBonus({ spd: 30, ctrl: 10 }) },
+                    { name: "Escudo de Brasas", icon: "🛡️", color: "#b91c1c", bonus: makeBonus({ res: 25, ctrl: 15 }) }
+                ],
+                secondary: [
+                    { name: "Chamas Negras Amaterasu", icon: "🖤", color: "#991b1b", bonus: makeBonus({ energy: 35, ctrl: 25 }) },
+                    { name: "Meteoro Solar Cruel", icon: "☀️", color: "#f59e0b", bonus: makeBonus({ str: 40, energy: 25 }) },
+                    { name: "Avatar da Fênix Imortal", icon: "🦅", color: "#ef4444", bonus: makeBonus({ res: 35, spd: 25 }) },
+                    { name: "Supernova Incandescente", icon: "💥", color: "#dc2626", bonus: makeBonus({ energy: 40, str: 20 }) },
+                    { name: "Prisão do Inferno", icon: "⛓️", color: "#7f1d1d", bonus: makeBonus({ ctrl: 35, battleIq: 20 }) },
+                    { name: "Manto do Deus do Fogo", icon: "👑", color: "#ea580c", bonus: makeBonus({ str: 25, spd: 25, energy: 20 }) }
+                ]
+            },
+            raio: {
+                primary: [
+                    { name: "Punho Relâmpago", icon: "👊", color: "#eab308", bonus: makeBonus({ spd: 25, str: 15 }) },
+                    { name: "Lança Elétrica", icon: "🔱", color: "#facc15", bonus: makeBonus({ ctrl: 20, spd: 20 }) },
+                    { name: "Passo Trovão", icon: "⚡", color: "#ca8a04", bonus: makeBonus({ spd: 35, battleIq: 10 }) },
+                    { name: "Chicote de Plasma", icon: "🪢", color: "#a16207", bonus: makeBonus({ ctrl: 25, spd: 15 }) },
+                    { name: "Armadura Estática", icon: "🛡️", color: "#eab308", bonus: makeBonus({ res: 20, spd: 20 }) },
+                    { name: "Disparo Voltaico", icon: "🎯", color: "#f59e0b", bonus: makeBonus({ battleIq: 25, ctrl: 15 }) }
+                ],
+                secondary: [
+                    { name: "Julgamento de Zeus", icon: "🌩️", color: "#eab308", bonus: makeBonus({ energy: 40, ctrl: 25 }) },
+                    { name: "Velocidade da Luz Divina", icon: "💫", color: "#fef08a", bonus: makeBonus({ spd: 45, battleIq: 20 }) },
+                    { name: "Dragão do Trovão Negro", icon: "🐉", color: "#713f12", bonus: makeBonus({ str: 30, energy: 30 }) },
+                    { name: "Campo Eletromagnético", icon: "🧲", color: "#ca8a04", bonus: makeBonus({ qi: 30, ctrl: 30 }) },
+                    { name: "Desfibrilação Cardíaca", icon: "💓", color: "#facc15", bonus: makeBonus({ res: 35, energy: 20 }) },
+                    { name: "Tempestade de Raios", icon: "⛈️", color: "#f59e0b", bonus: makeBonus({ energy: 35, spd: 25 }) }
+                ]
+            },
+            gelo: {
+                primary: [
+                    { name: "Lâminas de Gelo", icon: "🗡️", color: "#38bdf8", bonus: makeBonus({ ctrl: 20, spd: 20 }) },
+                    { name: "Muralha Glacial", icon: "🧊", color: "#0284c7", bonus: makeBonus({ res: 30, ctrl: 10 }) },
+                    { name: "Estacas Congelantes", icon: "❄️", color: "#7dd3fc", bonus: makeBonus({ battleIq: 20, ctrl: 20 }) },
+                    { name: "Armadura de Cristal", icon: "🛡️", color: "#0369a1", bonus: makeBonus({ res: 25, str: 15 }) },
+                    { name: "Toque Hipotérmico", icon: "🖐️", color: "#38bdf8", bonus: makeBonus({ qi: 20, ctrl: 20 }) },
+                    { name: "Arco do Inverno", icon: "🏹", color: "#0ea5e9", bonus: makeBonus({ battleIq: 25, ctrl: 15 }) }
+                ],
+                secondary: [
+                    { name: "Zero Absoluto", icon: "🥶", color: "#38bdf8", bonus: makeBonus({ ctrl: 40, energy: 25 }) },
+                    { name: "Era Glacial Instantânea", icon: "🏔️", color: "#0284c7", bonus: makeBonus({ energy: 35, res: 30 }) },
+                    { name: "Espelhos Demoníacos", icon: "🪞", color: "#7dd3fc", bonus: makeBonus({ spd: 35, battleIq: 25 }) },
+                    { name: "Caixão de Gelo Eterno", icon: "⚰️", color: "#075985", bonus: makeBonus({ ctrl: 35, qi: 25 }) },
+                    { name: "Dragão de Neve", icon: "🐉", color: "#0ea5e9", bonus: makeBonus({ str: 30, energy: 30 }) },
+                    { name: "Congelamento Temporal", icon: "⏳", color: "#bae6fd", bonus: makeBonus({ qi: 30, spd: 30 }) }
+                ]
+            },
+            vento: {
+                primary: [
+                    { name: "Lâminas de Vácuo", icon: "🌪️", color: "#2dd4bf", bonus: makeBonus({ spd: 25, ctrl: 15 }) },
+                    { name: "Voo Supersônico", icon: "🕊️", color: "#14b8a6", bonus: makeBonus({ spd: 35, luck: 10 }) },
+                    { name: "Esfera de Pressão", icon: "🌀", color: "#0d9488", bonus: makeBonus({ str: 20, ctrl: 20 }) },
+                    { name: "Passo Fantasma", icon: "💨", color: "#5eead4", bonus: makeBonus({ spd: 30, battleIq: 15 }) },
+                    { name: "Flechas de Vendaval", icon: "🏹", color: "#0f766e", bonus: makeBonus({ ctrl: 25, battleIq: 15 }) },
+                    { name: "Barreira Ciclone", icon: "🛡️", color: "#2dd4bf", bonus: makeBonus({ res: 25, spd: 15 }) }
+                ],
+                secondary: [
+                    { name: "Furacão Devastador", icon: "⛈️", color: "#14b8a6", bonus: makeBonus({ energy: 35, ctrl: 30 }) },
+                    { name: "Vácuo Sem Oxigênio", icon: "🫁", color: "#0f766e", bonus: makeBonus({ qi: 35, battleIq: 25 }) },
+                    { name: "Corte Rasenshuriken", icon: "💠", color: "#2dd4bf", bonus: makeBonus({ str: 30, ctrl: 35 }) },
+                    { name: "Deus dos Ventos Fujin", icon: "👺", color: "#115e59", bonus: makeBonus({ spd: 40, energy: 25 }) },
+                    { name: "Domínio da Atmosfera", icon: "🌐", color: "#5eead4", bonus: makeBonus({ ctrl: 35, qi: 25 }) },
+                    { name: "Velocidade Mach 10", icon: "🚀", color: "#0d9488", bonus: makeBonus({ spd: 45, str: 15 }) }
+                ]
+            },
+            gravidade: {
+                primary: [
+                    { name: "Soco Gravitacional", icon: "👊", color: "#6366f1", bonus: makeBonus({ str: 30, ctrl: 10 }) },
+                    { name: "Levitação Livre", icon: "🧘", color: "#818cf8", bonus: makeBonus({ spd: 25, ctrl: 15 }) },
+                    { name: "Campo Pesado (10G)", icon: "🏋️", color: "#4f46e5", bonus: makeBonus({ res: 25, battleIq: 15 }) },
+                    { name: "Repulsão Telecinética", icon: "🖐️", color: "#4338ca", bonus: makeBonus({ ctrl: 25, energy: 15 }) },
+                    { name: "Atração Magnética", icon: "🧲", color: "#6366f1", bonus: makeBonus({ battleIq: 20, str: 20 }) },
+                    { name: "Orbital de Rochas", icon: "🪨", color: "#3730a3", bonus: makeBonus({ res: 20, ctrl: 20 }) }
+                ],
+                secondary: [
+                    { name: "Buraco Negro Portátil", icon: "⚫", color: "#312e81", bonus: makeBonus({ energy: 45, ctrl: 25 }) },
+                    { name: "Chibaku Tensei (Lua)", icon: "🌑", color: "#4f46e5", bonus: makeBonus({ str: 35, energy: 30 }) },
+                    { name: "Gravidade Zero Absoluta", icon: "🌌", color: "#818cf8", bonus: makeBonus({ spd: 35, ctrl: 30 }) },
+                    { name: "Esmagamento Planetário", icon: "🪐", color: "#6366f1", bonus: makeBonus({ str: 40, res: 25 }) },
+                    { name: "Distorção Espacial", icon: "🌀", color: "#4338ca", bonus: makeBonus({ qi: 35, ctrl: 30 }) },
+                    { name: "Singularidade Infinita", icon: "✨", color: "#3730a3", bonus: makeBonus({ energy: 40, battleIq: 25 }) }
+                ]
+            },
+            luz: {
+                primary: [
+                    { name: "Espada de Luz", icon: "⚔️", color: "#fde047", bonus: makeBonus({ spd: 25, str: 15 }) },
+                    { name: "Cura Sagrada", icon: "💖", color: "#fef08a", bonus: makeBonus({ res: 25, luck: 20 }) },
+                    { name: "Clarão Cegante", icon: "☀️", color: "#facc15", bonus: makeBonus({ battleIq: 25, spd: 15 }) },
+                    { name: "Feixe de Laser", icon: "🔦", color: "#eab308", bonus: makeBonus({ ctrl: 25, energy: 15 }) },
+                    { name: "Asas de Luz", icon: "🕊️", color: "#fef9c3", bonus: makeBonus({ spd: 30, luck: 15 }) },
+                    { name: "Escudo Prismático", icon: "🛡️", color: "#ca8a04", bonus: makeBonus({ res: 30, ctrl: 10 }) }
+                ],
+                secondary: [
+                    { name: "Juízo Final Celestial", icon: "👼", color: "#fde047", bonus: makeBonus({ energy: 40, luck: 25 }) },
+                    { name: "Chute na Velocidade Luz", icon: "🦶", color: "#facc15", bonus: makeBonus({ spd: 45, str: 20 }) },
+                    { name: "Ressurreição Divina", icon: "✝️", color: "#fef08a", bonus: makeBonus({ res: 40, luck: 25 }) },
+                    { name: "Purificação de Almas", icon: "✨", color: "#eab308", bonus: makeBonus({ ctrl: 35, energy: 30 }) },
+                    { name: "Espelho Sagrado Yata", icon: "🪞", color: "#ca8a04", bonus: makeBonus({ battleIq: 35, res: 25 }) },
+                    { name: "Forma Arcanjo Supremo", icon: "👑", color: "#fde047", bonus: makeBonus({ energy: 35, spd: 30 }) }
+                ]
+            },
+            trevas: {
+                primary: [
+                    { name: "Garras das Sombras", icon: "🐾", color: "#4c1d95", bonus: makeBonus({ str: 25, spd: 15 }) },
+                    { name: "Passo nas Sombras", icon: "👤", color: "#581c87", bonus: makeBonus({ spd: 30, battleIq: 15 }) },
+                    { name: "Esfera da Escuridão", icon: "🌑", color: "#3b0764", bonus: makeBonus({ energy: 25, ctrl: 15 }) },
+                    { name: "Correntes Sombrias", icon: "⛓️", color: "#6b21a8", bonus: makeBonus({ ctrl: 25, battleIq: 15 }) },
+                    { name: "Manto de Invisibilidade", icon: "🧥", color: "#1e1b4b", bonus: makeBonus({ luck: 25, spd: 20 }) },
+                    { name: "Lâmina do Abismo", icon: "🗡️", color: "#4c1d95", bonus: makeBonus({ str: 20, energy: 20 }) }
+                ],
+                secondary: [
+                    { name: "Exército das Sombras", icon: "👥", color: "#4c1d95", bonus: makeBonus({ energy: 40, battleIq: 25 }) },
+                    { name: "Buraco Negro Devorador", icon: "🕳️", color: "#1e1b4b", bonus: makeBonus({ str: 35, energy: 30 }) },
+                    { name: "Anulação Total de Poder", icon: "🚫", color: "#581c87", bonus: makeBonus({ qi: 35, ctrl: 30 }) },
+                    { name: "Domínio da Noite Eterna", icon: "🌌", color: "#3b0764", bonus: makeBonus({ energy: 35, spd: 25 }) },
+                    { name: "Monarca das Trevas", icon: "👑", color: "#6b21a8", bonus: makeBonus({ str: 30, res: 30 }) },
+                    { name: "Fenda Dimensional Negra", icon: "✂️", color: "#2e1065", bonus: makeBonus({ ctrl: 40, battleIq: 20 }) }
+                ]
+            },
+            sangue: {
+                primary: [
+                    { name: "Lâminas Carmesins", icon: "🗡️", color: "#e11d48", bonus: makeBonus({ str: 20, ctrl: 20 }) },
+                    { name: "Chicote de Sangue", icon: "🪢", color: "#be123c", bonus: makeBonus({ spd: 20, ctrl: 20 }) },
+                    { name: "Endurecimento Vascular", icon: "🛡️", color: "#9f1239", bonus: makeBonus({ res: 30, str: 10 }) },
+                    { name: "Agulhas Sanguíneas", icon: "🪡", color: "#f43f5e", bonus: makeBonus({ battleIq: 25, ctrl: 15 }) },
+                    { name: "Dopagem Adrenalina", icon: "💉", color: "#881337", bonus: makeBonus({ str: 25, spd: 20 }) },
+                    { name: "Coagulação Rápida", icon: "🩹", color: "#e11d48", bonus: makeBonus({ res: 25, energy: 15 }) }
+                ],
+                secondary: [
+                    { name: "Marionete de Sangue", icon: "🎭", color: "#be123c", bonus: makeBonus({ ctrl: 45, qi: 20 }) },
+                    { name: "Mar de Sangue Fervente", icon: "🌊", color: "#9f1239", bonus: makeBonus({ energy: 40, str: 25 }) },
+                    { name: "Vampirismo Absoluto", icon: "🧛", color: "#881337", bonus: makeBonus({ res: 35, energy: 30 }) },
+                    { name: "Explosão Hemorrágica", icon: "💥", color: "#e11d48", bonus: makeBonus({ str: 40, battleIq: 20 }) },
+                    { name: "Armadura do Rei Carmesim", icon: "👑", color: "#f43f5e", bonus: makeBonus({ res: 35, spd: 25 }) },
+                    { name: "Maldição do Pacto", icon: "📜", color: "#4c0519", bonus: makeBonus({ ctrl: 35, luck: 25 }) }
+                ]
+            },
+            veneno: {
+                primary: [
+                    { name: "Névoa Tóxica", icon: "☁️", color: "#84cc16", bonus: makeBonus({ ctrl: 25, qi: 15 }) },
+                    { name: "Adagas Envenenadas", icon: "🔪", color: "#65a30d", bonus: makeBonus({ spd: 25, battleIq: 15 }) },
+                    { name: "Cuspe Ácido", icon: "🧪", color: "#4d7c0f", bonus: makeBonus({ energy: 20, ctrl: 20 }) },
+                    { name: "Imunidade Biológica", icon: "🧬", color: "#a3e635", bonus: makeBonus({ res: 30, luck: 10 }) },
+                    { name: "Esporos Paralisantes", icon: "🍄", color: "#3f6212", bonus: makeBonus({ battleIq: 25, qi: 15 }) },
+                    { name: "Sangue Corrosivo", icon: "🩸", color: "#84cc16", bonus: makeBonus({ res: 25, str: 15 }) }
+                ],
+                secondary: [
+                    { name: "Praga Apocalíptica", icon: "☠️", color: "#4d7c0f", bonus: makeBonus({ energy: 40, qi: 25 }) },
+                    { name: "Hidra de Veneno", icon: "🐉", color: "#65a30d", bonus: makeBonus({ str: 35, energy: 30 }) },
+                    { name: "Toxina Neural Instantânea", icon: "🧠", color: "#84cc16", bonus: makeBonus({ qi: 40, battleIq: 25 }) },
+                    { name: "Domínio do Pântano", icon: "🌿", color: "#365314", bonus: makeBonus({ ctrl: 35, res: 25 }) },
+                    { name: "Alquimia Mortal", icon: "⚗️", color: "#a3e635", bonus: makeBonus({ qi: 35, luck: 25 }) },
+                    { name: "Forma Deus da Peste", icon: "👑", color: "#3f6212", bonus: makeBonus({ energy: 35, ctrl: 30 }) }
+                ]
+            },
+            cristal: {
+                primary: [
+                    { name: "Lanças de Diamante", icon: "💎", color: "#06b6d4", bonus: makeBonus({ str: 20, ctrl: 20 }) },
+                    { name: "Escudo Refletor", icon: "🛡️", color: "#0891b2", bonus: makeBonus({ res: 30, ctrl: 10 }) },
+                    { name: "Prisão de Quartzo", icon: "🧊", color: "#22d3ee", bonus: makeBonus({ battleIq: 20, ctrl: 20 }) },
+                    { name: "Armadura Cristalina", icon: "🦾", color: "#0e7490", bonus: makeBonus({ res: 25, str: 15 }) },
+                    { name: "Estilhaços Cortantes", icon: "✨", color: "#67e8f9", bonus: makeBonus({ spd: 20, battleIq: 20 }) },
+                    { name: "Espelho de Prisma", icon: "🪞", color: "#06b6d4", bonus: makeBonus({ qi: 20, luck: 20 }) }
+                ],
+                secondary: [
+                    { name: "Labirinto de Espelhos", icon: "🏯", color: "#0891b2", bonus: makeBonus({ qi: 35, ctrl: 30 }) },
+                    { name: "Chuva de Meteoros Rubi", icon: "☄️", color: "#06b6d4", bonus: makeBonus({ energy: 35, str: 25 }) },
+                    { name: "Corpo Indestrutível", icon: "🗿", color: "#0e7490", bonus: makeBonus({ res: 45, str: 20 }) },
+                    { name: "Raio Laser Refratado", icon: "🔦", color: "#22d3ee", bonus: makeBonus({ ctrl: 40, spd: 25 }) },
+                    { name: "Golem Colossal", icon: "🤖", color: "#155e75", bonus: makeBonus({ str: 40, res: 25 }) },
+                    { name: "Cristalização Temporal", icon: "⏳", color: "#67e8f9", bonus: makeBonus({ ctrl: 35, qi: 25 }) }
+                ]
+            },
+            som: {
+                primary: [
+                    { name: "Grito Sônico", icon: "🗣️", color: "#ec4899", bonus: makeBonus({ energy: 25, str: 15 }) },
+                    { name: "Ecolocalização", icon: "🦇", color: "#db2777", bonus: makeBonus({ battleIq: 30, qi: 15 }) },
+                    { name: "Passo Silencioso", icon: "🤫", color: "#be185d", bonus: makeBonus({ spd: 30, luck: 10 }) },
+                    { name: "Ondas de Choque", icon: "〰️", color: "#f472b6", bonus: makeBonus({ str: 20, ctrl: 20 }) },
+                    { name: "Melodia Hipnótica", icon: "🎵", color: "#9d174d", bonus: makeBonus({ qi: 25, luck: 15 }) },
+                    { name: "Lâmina Vibratória", icon: "🗡️", color: "#ec4899", bonus: makeBonus({ spd: 20, ctrl: 20 }) }
+                ],
+                secondary: [
+                    { name: "Sinfonia da Destruição", icon: "🎻", color: "#db2777", bonus: makeBonus({ energy: 40, ctrl: 25 }) },
+                    { name: "Ressonância Molecular", icon: "⚛️", color: "#be185d", bonus: makeBonus({ qi: 35, str: 30 }) },
+                    { name: "Silêncio Absoluto (Vácuo)", icon: "🔇", color: "#831843", bonus: makeBonus({ battleIq: 35, ctrl: 30 }) },
+                    { name: "Trovão Supersônico", icon: "💥", color: "#ec4899", bonus: makeBonus({ spd: 40, str: 25 }) },
+                    { name: "Requiem das Almas", icon: "👻", color: "#f472b6", bonus: makeBonus({ energy: 35, luck: 25 }) },
+                    { name: "Partitura do Combate", icon: "🎼", color: "#9d174d", bonus: makeBonus({ battleIq: 45, spd: 20 }) }
+                ]
+            },
+            tempo: {
+                primary: [
+                    { name: "Aceleração Pessoal", icon: "⏩", color: "#8b5cf6", bonus: makeBonus({ spd: 35, ctrl: 10 }) },
+                    { name: "Visão do Futuro (3s)", icon: "👁️", color: "#7c3aed", bonus: makeBonus({ battleIq: 35, qi: 15 }) },
+                    { name: "Lentidão em Área", icon: "🐌", color: "#6d28d9", bonus: makeBonus({ ctrl: 25, battleIq: 15 }) },
+                    { name: "Salto Espacial Curto", icon: "🌀", color: "#a78bfa", bonus: makeBonus({ spd: 30, luck: 15 }) },
+                    { name: "Envelhecimento Rápido", icon: "🍂", color: "#5b21b6", bonus: makeBonus({ energy: 25, ctrl: 15 }) },
+                    { name: "Rebobinar Ferimentos", icon: "⏪", color: "#8b5cf6", bonus: makeBonus({ res: 30, luck: 10 }) }
+                ],
+                secondary: [
+                    { name: "Parar o Tempo (Za Warudo)", icon: "⏱️", color: "#7c3aed", bonus: makeBonus({ spd: 45, ctrl: 25 }) },
+                    { name: "Apagar o Tempo", icon: "✂️", color: "#5b21b6", bonus: makeBonus({ battleIq: 40, energy: 25 }) },
+                    { name: "Loop Temporal Infinito", icon: "♾️", color: "#4c1d95", bonus: makeBonus({ qi: 40, luck: 25 }) },
+                    { name: "Portal Dimensional", icon: "🌌", color: "#8b5cf6", bonus: makeBonus({ ctrl: 35, spd: 30 }) },
+                    { name: "Paradoxo Temporal", icon: "⏳", color: "#6d28d9", bonus: makeBonus({ energy: 40, qi: 25 }) },
+                    { name: "Senhor do Espaço-Tempo", icon: "👑", color: "#a78bfa", bonus: makeBonus({ qi: 30, ctrl: 35 }) }
+                ]
+            },
+            natureza: {
+                primary: [
+                    { name: "Vinhas Constritoras", icon: "🌿", color: "#16a34a", bonus: makeBonus({ ctrl: 25, battleIq: 15 }) },
+                    { name: "Espinhos Venenosos", icon: "🌵", color: "#15803d", bonus: makeBonus({ str: 20, ctrl: 20 }) },
+                    { name: "Armadura de Madeira", icon: "🪵", color: "#166534", bonus: makeBonus({ res: 30, str: 10 }) },
+                    { name: "Cura Fotossíntese", icon: "☀️", color: "#22c55e", bonus: makeBonus({ res: 25, energy: 20 }) },
+                    { name: "Pólen Sonífero", icon: "🌸", color: "#4ade80", bonus: makeBonus({ qi: 25, luck: 15 }) },
+                    { name: "Lâminas de Folha", icon: "🍃", color: "#16a34a", bonus: makeBonus({ spd: 25, ctrl: 15 }) }
+                ],
+                secondary: [
+                    { name: "Nascimento da Floresta", icon: "🌲", color: "#15803d", bonus: makeBonus({ energy: 40, res: 25 }) },
+                    { name: "Dragão de Madeira", icon: "🐉", color: "#166534", bonus: makeBonus({ str: 35, ctrl: 30 }) },
+                    { name: "Buda de Mil Mãos", icon: "🗿", color: "#14532d", bonus: makeBonus({ str: 45, res: 25 }) },
+                    { name: "Árvore Divina Shinju", icon: "🌳", color: "#16a34a", bonus: makeBonus({ energy: 45, qi: 20 }) },
+                    { name: "Fúria da Mãe Natureza", icon: "🌍", color: "#22c55e", bonus: makeBonus({ ctrl: 35, energy: 30 }) },
+                    { name: "Regeneração da Terra", icon: "💚", color: "#4ade80", bonus: makeBonus({ res: 40, luck: 20 }) }
+                ]
+            },
+            magma: {
+                primary: [
+                    { name: "Punho de Magma", icon: "🌋", color: "#ea580c", bonus: makeBonus({ str: 30, res: 10 }) },
+                    { name: "Chuva de Rochas", icon: "☄️", color: "#c2410c", bonus: makeBonus({ energy: 25, battleIq: 15 }) },
+                    { name: "Pele Vulcânica", icon: "🪨", color: "#9a3412", bonus: makeBonus({ res: 35, str: 10 }) },
+                    { name: "Geiser de Lava", icon: "🔥", color: "#f97316", bonus: makeBonus({ str: 25, energy: 15 }) },
+                    { name: "Lâmina de Obsidiana", icon: "🗡️", color: "#7c2d12", bonus: makeBonus({ str: 20, ctrl: 20 }) },
+                    { name: "Passo Tectônico", icon: "👣", color: "#ea580c", bonus: makeBonus({ res: 20, spd: 20 }) }
+                ],
+                secondary: [
+                    { name: "Erupção Apocalíptica", icon: "🌋", color: "#c2410c", bonus: makeBonus({ str: 40, energy: 30 }) },
+                    { name: "Cão Infernal (Meigo)", icon: "🐕", color: "#9a3412", bonus: makeBonus({ str: 45, battleIq: 20 }) },
+                    { name: "Mar de Lava Fervente", icon: "🌊", color: "#ea580c", bonus: makeBonus({ energy: 40, res: 25 }) },
+                    { name: "Titã de Obsidiana", icon: "👹", color: "#7c2d12", bonus: makeBonus({ res: 45, str: 25 }) },
+                    { name: "Núcleo da Terra", icon: "🪐", color: "#f97316", bonus: makeBonus({ energy: 35, ctrl: 30 }) },
+                    { name: "Meteoro Vulcânico", icon: "💥", color: "#431407", bonus: makeBonus({ str: 40, luck: 20 }) }
+                ]
+            },
+            agua: {
+                primary: [
+                    { name: "Dragão de Água", icon: "🐉", color: "#0284c7", bonus: makeBonus({ ctrl: 25, energy: 15 }) },
+                    { name: "Chicote das Marés", icon: "🌊", color: "#0369a1", bonus: makeBonus({ spd: 20, ctrl: 20 }) },
+                    { name: "Prisão Aquática", icon: "🫧", color: "#0ea5e9", bonus: makeBonus({ battleIq: 25, ctrl: 15 }) },
+                    { name: "Respiração Subaquática", icon: "🐟", color: "#38bdf8", bonus: makeBonus({ res: 25, spd: 15 }) },
+                    { name: "Jato de Alta Pressão", icon: "💦", color: "#075985", bonus: makeBonus({ str: 20, ctrl: 20 }) },
+                    { name: "Névoa Oculta", icon: "🌫️", color: "#0284c7", bonus: makeBonus({ battleIq: 20, luck: 20 }) }
+                ],
+                secondary: [
+                    { name: "Tsunami Colossal", icon: "🌊", color: "#0369a1", bonus: makeBonus({ energy: 40, str: 25 }) },
+                    { name: "Fusão com o Oceano", icon: "💧", color: "#0284c7", bonus: makeBonus({ res: 40, spd: 25 }) },
+                    { name: "Tridente de Poseidon", icon: "🔱", color: "#0ea5e9", bonus: makeBonus({ ctrl: 40, energy: 25 }) },
+                    { name: "Redemoinho Abissal", icon: "🌀", color: "#075985", bonus: makeBonus({ ctrl: 35, battleIq: 25 }) },
+                    { name: "Chuva Ácida Torrencial", icon: "🌧️", color: "#38bdf8", bonus: makeBonus({ qi: 30, energy: 30 }) },
+                    { name: "Leviatã dos Mares", icon: "🐋", color: "#0c4a6e", bonus: makeBonus({ str: 35, res: 30 }) }
+                ]
+            },
+            energia: {
+                primary: [
+                    { name: "Rajada de Ki / Mana", icon: "☄️", color: "#94a3b8", bonus: makeBonus({ energy: 25, ctrl: 15 }) },
+                    { name: "Barreira Espiritual", icon: "🛡️", color: "#64748b", bonus: makeBonus({ res: 30, ctrl: 10 }) },
+                    { name: "Reforço Muscular", icon: "💪", color: "#cbd5e1", bonus: makeBonus({ str: 25, spd: 15 }) },
+                    { name: "Voo Livre", icon: "🕊️", color: "#475569", bonus: makeBonus({ spd: 25, ctrl: 15 }) },
+                    { name: "Sensor de Aura", icon: "📡", color: "#94a3b8", bonus: makeBonus({ battleIq: 25, qi: 15 }) },
+                    { name: "Lâmina de Energia", icon: "🗡️", color: "#64748b", bonus: makeBonus({ ctrl: 25, str: 15 }) }
+                ],
+                secondary: [
+                    { name: "Kamehameha Supremo", icon: "🔵", color: "#3b82f6", bonus: makeBonus({ energy: 45, str: 25 }) },
+                    { name: "Ultra Instinto Completo", icon: "⚪", color: "#f8fafc", bonus: makeBonus({ spd: 40, battleIq: 35 }) },
+                    { name: "Expansão de Domínio", icon: "🏯", color: "#6366f1", bonus: makeBonus({ ctrl: 40, energy: 30 }) },
+                    { name: "Hakai (Destruição)", icon: "🟣", color: "#7e22ce", bonus: makeBonus({ str: 40, energy: 30 }) },
+                    { name: "Modo Bárion / Despertar", icon: "🔥", color: "#f97316", bonus: makeBonus({ str: 35, spd: 35 }) },
+                    { name: "Energia Infinita", icon: "♾️", color: "#10b981", bonus: makeBonus({ energy: 50, res: 20 }) }
+                ]
+            }
+        };
+
+        // Fallback inicial antes de girar o Poder Base
+        const DEFAULT_SKILLS_PLACEHOLDER = [
+            { name: "Gire o Poder Base", icon: "🔒", color: "#334155", bonus: makeBonus({}) },
+            { name: "Aguardando Poder", icon: "❓", color: "#1e293b", bonus: makeBonus({}) },
+            { name: "Gire o Poder Base", icon: "🔒", color: "#334155", bonus: makeBonus({}) },
+            { name: "Aguardando Poder", icon: "❓", color: "#1e293b", bonus: makeBonus({}) },
+            { name: "Gire o Poder Base", icon: "🔒", color: "#334155", bonus: makeBonus({}) },
+            { name: "Aguardando Poder", icon: "❓", color: "#1e293b", bonus: makeBonus({}) }
+        ];
+
+        const WEAPONS_DATA = [
+            { name: "Katana Amaldiçoada", icon: "🗡️", color: "#dc2626", bonus: makeBonus({ str: 20, spd: 20, battleIq: 15, luck: -5 }) },
+            { name: "Grimório Proibido", icon: "📕", color: "#7e22ce", bonus: makeBonus({ qi: 30, energy: 25, ctrl: 20 }) },
+            { name: "Manoplas do Dragão", icon: "🥊", color: "#ea580c", bonus: makeBonus({ str: 30, res: 20 }) },
+            { name: "Foices Gêmeas", icon: "⚰️", color: "#312e81", bonus: makeBonus({ spd: 25, energy: 20, battleIq: 15 }) },
+            { name: "Lança Celestial", icon: "🔱", color: "#eab308", bonus: makeBonus({ str: 20, spd: 20, ctrl: 20, luck: 10 }) },
+            { name: "Arco Etéreo", icon: "🏹", color: "#0284c7", bonus: makeBonus({ ctrl: 30, battleIq: 20, spd: 15 }) },
+            { name: "Sem Arma / Punhos Nus", icon: "👊", color: "#f43f5e", bonus: makeBonus({ battleIq: 25, spd: 20, ctrl: 25 }) },
+            { name: "Espada Colossal", icon: "⚔️", color: "#475569", bonus: makeBonus({ str: 35, res: 20, spd: -10 }) },
+            { name: "Correntes Sagradas", icon: "⛓️", color: "#f59e0b", bonus: makeBonus({ ctrl: 25, res: 20, energy: 15 }) },
+            { name: "Anel do Soberano", icon: "💍", color: "#10b981", bonus: makeBonus({ luck: 35, energy: 20, qi: 15 }) },
+            { name: "Armadura Simbiótica", icon: "🛡️", color: "#334155", bonus: makeBonus({ res: 35, str: 15, spd: -5 }) },
+            { name: "Pistolas Arcanas", icon: "🔫", color: "#06b6d4", bonus: makeBonus({ spd: 25, battleIq: 20, ctrl: 20 }) },
+            { name: "Cajado do Caos", icon: "🪄", color: "#c026d3", bonus: makeBonus({ energy: 35, qi: 20, luck: 15, ctrl: -10 }) },
+            { name: "Adagas Venenosas", icon: "🔪", color: "#65a30d", bonus: makeBonus({ spd: 30, battleIq: 20, luck: 10 }) },
+            { name: "Orbe Dimensional", icon: "🔮", color: "#6366f1", bonus: makeBonus({ qi: 25, energy: 25, ctrl: 25 }) },
+            { name: "Leque Elemental", icon: "🪭", color: "#14b8a6", bonus: makeBonus({ ctrl: 30, spd: 20, qi: 15 }) },
+            { name: "Martelo de Guerra", icon: "🔨", color: "#b45309", bonus: makeBonus({ str: 40, res: 25, spd: -15 }) },
+            { name: "Alabarda Imperial", icon: "🪓", color: "#991b1b", bonus: makeBonus({ str: 25, battleIq: 25, res: 15 }) },
+            { name: "Garras de Adamantium", icon: "🐾", color: "#64748b", bonus: makeBonus({ spd: 30, str: 25, battleIq: 10 }) },
+            { name: "Chicote de Chamas", icon: "🪢", color: "#f97316", bonus: makeBonus({ ctrl: 30, spd: 20, energy: 15 }) },
+            { name: "Besta Mecânica", icon: "🎯", color: "#0369a1", bonus: makeBonus({ qi: 25, battleIq: 25, ctrl: 20 }) },
+            { name: "Manto das Sombras", icon: "🧥", color: "#1e1b4b", bonus: makeBonus({ spd: 25, luck: 25, ctrl: 20 }) },
+            { name: "Tridente Abissal", icon: "🔱", color: "#0e7490", bonus: makeBonus({ str: 25, energy: 25, ctrl: 20 }) },
+            { name: "Espadas Gêmeas", icon: "⚔️", color: "#be123c", bonus: makeBonus({ spd: 30, battleIq: 20, str: 15 }) },
+            { name: "Relógio do Destino", icon: "⌚", color: "#eab308", bonus: makeBonus({ qi: 30, luck: 30, ctrl: 20 }) },
+            { name: "Escudo Aegis", icon: "🛡️", color: "#2563eb", bonus: makeBonus({ res: 45, luck: 15, spd: -10 }) }
+        ];
+
+        const WEAKNESSES_DATA = [
+            { name: "Consumo Alto de Mana", icon: "🪫", color: "#e11d48", bonus: makeBonus({ energy: -25, ctrl: -10 }) },
+            { name: "Fúria Cega", icon: "🤬", color: "#dc2626", bonus: makeBonus({ qi: -25, ctrl: -15, str: 15 }) },
+            { name: "Corpo Frágil", icon: "🦴", color: "#94a3b8", bonus: makeBonus({ res: -25, str: -10 }) },
+            { name: "Azar Crônico", icon: "🐈‍⬛", color: "#475569", bonus: makeBonus({ luck: -30 }) },
+            { name: "Arrogância", icon: "😤", color: "#f59e0b", bonus: makeBonus({ battleIq: -20, luck: -15, str: 10 }) },
+            { name: "Limite de Tempo (3m)", icon: "⏳", color: "#6366f1", bonus: makeBonus({ res: -15, energy: -15 }) },
+            { name: "Sensível à Luz", icon: "☀️", color: "#facc15", bonus: makeBonus({ res: -15, spd: -15 }) },
+            { name: "Coração Mole", icon: "💗", color: "#ec4899", bonus: makeBonus({ battleIq: -15, luck: 15 }) },
+            { name: "Lentidão Inicial", icon: "🐢", color: "#78716c", bonus: makeBonus({ spd: -25, res: 10 }) },
+            { name: "Descontrole de Poder", icon: "💥", color: "#ea580c", bonus: makeBonus({ ctrl: -25, energy: 10 }) },
+            { name: "Fobia de Sangue", icon: "🩸", color: "#9f1239", bonus: makeBonus({ battleIq: -20, qi: -10 }) },
+            { name: "Miopia Sem Óculos", icon: "👓", color: "#0284c7", bonus: makeBonus({ battleIq: -15, ctrl: -15 }) },
+            { name: "Maldição do Sono", icon: "💤", color: "#7c3aed", bonus: makeBonus({ spd: -15, qi: -15 }) },
+            { name: "Sem Fraqueza Aparente", icon: "💎", color: "#10b981", bonus: makeBonus({ luck: 15, res: 10 }) },
+            { name: "Fome Insaciável", icon: "🍖", color: "#b45309", bonus: makeBonus({ energy: -20, res: -15, str: 10 }) },
+            { name: "Selo de Restrição", icon: "⛓️", color: "#52525b", bonus: makeBonus({ str: -15, energy: -20 }) },
+            { name: "Incapaz de Nadar", icon: "🌊", color: "#0369a1", bonus: makeBonus({ spd: -15, luck: -15 }) },
+            { name: "Dor Crônica", icon: "⚡", color: "#b91c1c", bonus: makeBonus({ res: -20, ctrl: -15 }) },
+            { name: "Voz Selada", icon: "🤐", color: "#4f46e5", bonus: makeBonus({ luck: -20, ctrl: 10 }) },
+            { name: "Amnésia Parcial", icon: "❓", color: "#6d28d9", bonus: makeBonus({ qi: -25, battleIq: -10 }) },
+            { name: "Vulnerável a Prata", icon: "🥈", color: "#cbd5e1", bonus: makeBonus({ res: -25, luck: -10 }) },
+            { name: "Claustrofobia", icon: "📦", color: "#78350f", bonus: makeBonus({ battleIq: -20, spd: -15 }) }
+        ];
+
+        const STAT_TIERS_DATA = [
+            { name: "F", value: 10, color: "#475569" },
+            { name: "E", value: 20, color: "#64748b" },
+            { name: "D", value: 30, color: "#3b82f6" },
+            { name: "C", value: 40, color: "#0ea5e9" },
+            { name: "B", value: 50, color: "#10b981" },
+            { name: "A", value: 60, color: "#14b8a6" },
+            { name: "A+", value: 70, color: "#8b5cf6" },
+            { name: "S", value: 80, color: "#a855f7" },
+            { name: "S+", value: 88, color: "#f59e0b" },
+            { name: "SS", value: 94, color: "#ec4899" },
+            { name: "SSS", value: 98, color: "#ef4444" },
+            { name: "Z+", value: 100, color: "#eab308" }
+        ];
+
+        const appState = {
+            soundEnabled: true,
+            isSpinningAll: false,
+            statViewMode: 'bars',
+            wheels: {
+                race: { id: 'race', title: 'Raça', icon: '🧬', type: 'identity', items: RACES_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                family: { id: 'family', title: 'Família / Clã', icon: '🏯', type: 'identity', items: FAMILIES_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                charClass: { id: 'charClass', title: 'Classe', icon: '⚔️', type: 'identity', items: CLASSES_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                power1: { id: 'power1', title: 'Poder Base', icon: '✨', type: 'identity', items: BASE_POWERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                power2: { id: 'power2', title: 'Hab. Primária', icon: '🔥', type: 'identity', items: DEFAULT_SKILLS_PLACEHOLDER, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                power3: { id: 'power3', title: 'Hab. Secundária', icon: '🌀', type: 'identity', items: DEFAULT_SKILLS_PLACEHOLDER, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                weapon: { id: 'weapon', title: 'Arma / Relíquia', icon: '🗡️', type: 'identity', items: WEAPONS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                weakness: { id: 'weakness', title: 'Fraqueza / Maldição', icon: '⛓️', type: 'identity', items: WEAKNESSES_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+
+                qi: { id: 'qi', title: 'QI', icon: '🧠', type: 'stat', items: STAT_TIERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                battleIq: { id: 'battleIq', title: 'QI de Batalha', icon: '🎯', type: 'stat', items: STAT_TIERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                str: { id: 'str', title: 'Força', icon: '💪', type: 'stat', items: STAT_TIERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                spd: { id: 'spd', title: 'Velocidade', icon: '⚡', type: 'stat', items: STAT_TIERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                res: { id: 'res', title: 'Resistência', icon: '🛡️', type: 'stat', items: STAT_TIERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                energy: { id: 'energy', title: 'Energia / Mana', icon: '🔮', type: 'stat', items: STAT_TIERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                ctrl: { id: 'ctrl', title: 'Controle Energia', icon: '💠', type: 'stat', items: STAT_TIERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 },
+                luck: { id: 'luck', title: 'Sorte / Carisma', icon: '🍀', type: 'stat', items: STAT_TIERS_DATA, selectedIndex: null, locked: false, spinning: false, currentAngle: 0 }
+            }
+        };
+
+        // Atualiza as opções das roletas Hab. Primária e Hab. Secundária com base no Poder Base escolhido
+        function updateSkillWheelsForBasePower(basePowerItem) {
+            const p2 = appState.wheels.power2;
+            const p3 = appState.wheels.power3;
+
+            if (basePowerItem && SKILL_TREES[basePowerItem.id]) {
+                p2.items = SKILL_TREES[basePowerItem.id].primary;
+                p3.items = SKILL_TREES[basePowerItem.id].secondary;
+            } else {
+                p2.items = DEFAULT_SKILLS_PLACEHOLDER;
+                p3.items = DEFAULT_SKILLS_PLACEHOLDER;
+            }
+
+            if (!p2.locked) {
+                p2.selectedIndex = null;
+                p2.currentAngle = 0;
+                updateWheelControlsUI('power2');
+            }
+            if (!p3.locked) {
+                p3.selectedIndex = null;
+                p3.currentAngle = 0;
+                updateWheelControlsUI('power3');
+            }
+
+            drawWheel(p2);
+            drawWheel(p3);
+        }
+
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playTickSound() {
+            if (!appState.soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(620, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.03);
+                gain.gain.setValueAtTime(0.06, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.035);
+            } catch (e) {}
+        }
+
+        function playWinSound() {
+            if (!appState.soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    const startTime = ctx.currentTime + idx * 0.045;
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0.07, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.36);
+                });
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            appState.soundEnabled = !appState.soundEnabled;
+            document.getElementById('soundIcon').textContent = appState.soundEnabled ? '🔊' : '🔇';
+            document.getElementById('soundLabel').textContent = appState.soundEnabled ? 'Som' : 'Mudo';
+            showToast(appState.soundEnabled ? "Efeitos sonoros ativados!" : "Efeitos sonoros silenciados.", "info");
+        }
+
+        function toggleStatView(mode) {
+            appState.statViewMode = mode;
+            const barsEl = document.getElementById('attributesDisplayList');
+            const radarEl = document.getElementById('radarChartContainer');
+            const btnBars = document.getElementById('viewBarsBtn');
+            const btnRadar = document.getElementById('viewRadarBtn');
+
+            if (mode === 'bars') {
+                barsEl.classList.remove('hidden');
+                radarEl.classList.add('hidden');
+                btnBars.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-600 text-white cursor-pointer";
+                btnRadar.className = "px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-400 hover:text-white cursor-pointer";
+            } else {
+                barsEl.classList.add('hidden');
+                radarEl.classList.remove('hidden');
+                btnRadar.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-600 text-white cursor-pointer";
+                btnBars.className = "px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-400 hover:text-white cursor-pointer";
+                updateCharacterSheet();
+            }
+        }
+
+        function buildWheelCards() {
+            const identityGrid = document.getElementById('identityWheelsGrid');
+            const statsGrid = document.getElementById('statsWheelsGrid');
+
+            identityGrid.innerHTML = '';
+            statsGrid.innerHTML = '';
+
+            Object.values(appState.wheels).forEach(wheel => {
+                const isStat = wheel.type === 'stat';
+                const card = document.createElement('div');
+                card.id = `card-${wheel.id}`;
+                card.className = `rounded-2xl card-surface border border-slate-800 hover:border-purple-500/45 p-3 flex flex-col items-center justify-between transition relative shadow-lg`;
+
+                card.innerHTML = `
+                    <div class="w-full flex items-center justify-between mb-1.5 gap-1">
+                        <span class="font-bold text-xs text-slate-200 flex items-center gap-1.5 truncate">
+                            <span>${wheel.icon}</span>
+                            <span class="truncate">${wheel.title}</span>
+                        </span>
+                        <button id="lockBtn-${wheel.id}" onclick="toggleLock('${wheel.id}')" 
+                            class="p-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-400 transition text-xs cursor-pointer shrink-0" 
+                            title="Travar/Destravar resultado">
+                            🔓
+                        </button>
+                    </div>
+                    <div class="relative w-full aspect-square ${isStat ? 'max-w-[138px]' : 'max-w-[168px]'} my-1 flex items-center justify-center">
+                        <div class="absolute -top-2 z-10 wheel-pointer">
+                            <svg width="20" height="22" viewBox="0 0 24 26" fill="none">
+                                <path d="M12 25L2 3H22L12 25Z" fill="#fbbf24" stroke="#0a0a12" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <canvas id="canvas-${wheel.id}" class="w-full h-full rounded-full"></canvas>
+                        <div class="absolute w-6 h-6 rounded-full bg-[#0a0a12] border-2 border-amber-400 shadow-md flex items-center justify-center pointer-events-none">
+                            <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-col gap-0.5 mt-1.5">
+                        <div id="resultBadge-${wheel.id}" class="w-full text-center py-1 px-2 rounded-lg bg-[#0a0a12] border border-slate-800 text-[11px] font-bold text-slate-400 truncate">
+                            Aguardando giro...
+                        </div>
+                        <div id="bonusSubBadge-${wheel.id}" class="w-full text-center text-[9px] font-code text-slate-500 truncate min-h-[14px]">
+                            —
+                        </div>
+                    </div>
+                    <button id="spinBtn-${wheel.id}" onclick="spinSingleWheel('${wheel.id}')" 
+                        class="w-full mt-1.5 py-1.5 px-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/40 text-purple-200 font-bold text-[11px] transition active:scale-95 cursor-pointer">
+                        Girar
+                    </button>
+                `;
+
+                if (isStat) {
+                    statsGrid.appendChild(card);
+                } else {
+                    identityGrid.appendChild(card);
+                }
+            });
+
+            resizeAndDrawAllCanvases();
+        }
+
+        function resizeAndDrawAllCanvases() {
+            Object.values(appState.wheels).forEach(wheel => {
+                const canvas = document.getElementById(`canvas-${wheel.id}`);
+                if (!canvas) return;
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                const size = Math.max(rect.width, 115);
+                canvas.width = size * dpr;
+                canvas.height = size * dpr;
+                drawWheel(wheel);
+            });
+            drawDynamicAvatar();
+        }
+
+        function drawWheel(wheel) {
+            const canvas = document.getElementById(`canvas-${wheel.id}`);
+            if (!canvas || canvas.width === 0) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const width = canvas.width / dpr;
+            const height = canvas.height / dpr;
+            const cx = width / 2;
+            const cy = height / 2;
+            const radius = Math.min(cx, cy) - 3;
+
+            ctx.save();
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, width, height);
+
+            const numSlices = wheel.items.length;
+            const arc = (2 * Math.PI) / numSlices;
+
+            for (let i = 0; i < numSlices; i++) {
+                const item = wheel.items[i];
+                const startAngle = wheel.currentAngle + i * arc;
+                const endAngle = startAngle + arc;
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = "#0a0a12";
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(startAngle + arc / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowColor = "rgba(0,0,0,0.92)";
+                ctx.shadowBlur = 3;
+
+                if (wheel.type === 'stat') {
+                    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+                    ctx.fillText(`${item.name} (${item.value})`, radius - 6, 3);
+                } else {
+                    ctx.font = "bold 7.5px Inter, sans-serif";
+                    const label = `${item.icon} ${item.name}`;
+                    ctx.fillText(label.length > 14 ? label.substring(0, 13) + '…' : label, radius - 6, 3);
+                }
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = wheel.locked ? "#fbbf24" : "#334155";
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawDynamicAvatar() {
+            const canvas = document.getElementById('avatarCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const race = getSelectedItem('race');
+            const charClass = getSelectedItem('charClass');
+            const weapon = getSelectedItem('weapon');
+            const totalPower = parseInt(document.getElementById('totalPowerValue').textContent) || 0;
+            const rankObj = calculateOverallRank(totalPower);
+
+            let skinColor = "#fcd34d";
+            let hairColor = "#a855f7";
+            let outfitColor = "#3b82f6";
+            let auraColor = "rgba(168, 85, 247, 0.35)";
+            let accessoryType = "none";
+
+            if (race) {
+                if (race.name.includes("Demônio") || race.name.includes("Oni")) {
+                    skinColor = "#fca5a5"; hairColor = "#dc2626"; outfitColor = "#7f1d1d"; auraColor = "rgba(239, 68, 68, 0.4)"; accessoryType = "horns";
+                } else if (race.name.includes("Anjo") || race.name.includes("Celestial") || race.name.includes("Nephilim") || race.name.includes("Fada")) {
+                    skinColor = "#fef08a"; hairColor = "#facc15"; outfitColor = "#eab308"; auraColor = "rgba(250, 204, 21, 0.45)"; accessoryType = "halo";
+                } else if (race.name.includes("Ghoul") || race.name.includes("Vampiro")) {
+                    skinColor = "#e2e8f0"; hairColor = "#9f1239"; outfitColor = "#881337"; auraColor = "rgba(225, 29, 72, 0.4)"; accessoryType = "fangs";
+                } else if (race.name.includes("Entidade") || race.name.includes("Alienígena") || race.name.includes("Deus")) {
+                    skinColor = "#c084fc"; hairColor = "#38bdf8"; outfitColor = "#6d28d9"; auraColor = "rgba(56, 189, 248, 0.5)"; accessoryType = "cosmos";
+                } else if (race.name.includes("Elfo")) {
+                    skinColor = "#a7f3d0"; hairColor = "#059669"; outfitColor = "#047857"; auraColor = "rgba(16, 185, 129, 0.4)"; accessoryType = "elf_ears";
+                } else if (race.name.includes("Saiyajin") || race.name.includes("Draconiano")) {
+                    hairColor = "#f59e0b"; outfitColor = "#b45309"; auraColor = "rgba(245, 158, 11, 0.45)";
+                } else if (race.name.includes("Ciborgue") || race.name.includes("Androide")) {
+                    skinColor = "#cbd5e1"; hairColor = "#06b6d4"; outfitColor = "#334155"; auraColor = "rgba(6, 182, 212, 0.45)";
+                }
+            }
+
+            if (charClass) {
+                if (charClass.name.includes("Assassino") || charClass.name.includes("Ninja")) outfitColor = "#0f172a";
+                if (charClass.name.includes("Mago") || charClass.name.includes("Feiticeiro")) hairColor = "#06b6d4";
+                if (charClass.name.includes("Berserker")) hairColor = "#ef4444";
+            }
+
+            const cx = width / 2;
+            const cy = height / 2 + 10;
+
+            const gradient = ctx.createRadialGradient(cx, cy, 10, cx, cy, 75);
+            gradient.addColorStop(0, auraColor);
+            gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 75, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = outfitColor;
+            ctx.beginPath();
+            ctx.roundRect(cx - 24, cy + 12, 48, 55, [10, 10, 4, 4]);
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#1e293b";
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(cx - 10, cy + 12);
+            ctx.lineTo(cx, cy + 28);
+            ctx.lineTo(cx + 10, cy + 12);
+            ctx.fill();
+
+            ctx.fillStyle = skinColor;
+            ctx.beginPath();
+            ctx.arc(cx, cy - 14, 28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            if (accessoryType === "elf_ears") {
+                ctx.beginPath();
+                ctx.moveTo(cx - 27, cy - 16);
+                ctx.lineTo(cx - 38, cy - 24);
+                ctx.lineTo(cx - 26, cy - 10);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(cx + 27, cy - 16);
+                ctx.lineTo(cx + 38, cy - 24);
+                ctx.lineTo(cx + 26, cy - 10);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = hairColor;
+            ctx.beginPath();
+            ctx.ellipse(cx - 9, cy - 14, 4.5, 6.5, 0, 0, Math.PI * 2);
+            ctx.ellipse(cx + 9, cy - 14, 4.5, 6.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(cx - 10, cy - 16, 1.5, 0, Math.PI * 2);
+            ctx.arc(cx + 8, cy - 16, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "#1e293b";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy - 2, 5, 0.1, Math.PI - 0.1);
+            ctx.stroke();
+
+            ctx.fillStyle = hairColor;
+            ctx.beginPath();
+            ctx.moveTo(cx - 29, cy - 22);
+            ctx.lineTo(cx - 35, cy - 42);
+            ctx.lineTo(cx - 16, cy - 35);
+            ctx.lineTo(cx, cy - 48);
+            ctx.lineTo(cx + 18, cy - 35);
+            ctx.lineTo(cx + 34, cy - 42);
+            ctx.lineTo(cx + 28, cy - 22);
+            ctx.lineTo(cx, cy - 38);
+            ctx.closePath();
+            ctx.fill();
+
+            if (accessoryType === "horns") {
+                ctx.fillStyle = "#ef4444";
+                ctx.beginPath();
+                ctx.moveTo(cx - 18, cy - 36);
+                ctx.quadraticCurveTo(cx - 28, cy - 54, cx - 14, cy - 48);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(cx + 18, cy - 36);
+                ctx.quadraticCurveTo(cx + 28, cy - 54, cx + 14, cy - 48);
+                ctx.fill();
+            } else if (accessoryType === "halo") {
+                ctx.strokeStyle = "#fde047";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.ellipse(cx, cy - 56, 16, 6, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (accessoryType === "fangs") {
+                ctx.fillStyle = "#ffffff";
+                ctx.beginPath();
+                ctx.moveTo(cx - 4, cy + 2); ctx.lineTo(cx - 2, cy + 7); ctx.lineTo(cx, cy + 2); ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(cx, cy + 2); ctx.lineTo(cx + 2, cy + 7); ctx.lineTo(cx + 4, cy + 2); ctx.fill();
+            } else if (accessoryType === "cosmos") {
+                ctx.fillStyle = "#38bdf8";
+                ctx.beginPath(); ctx.arc(cx - 32, cy - 10, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(cx + 32, cy - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+            }
+
+            if (weapon) {
+                ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+                ctx.strokeStyle = weapon.color || "#38bdf8";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(width - 38, 12, 28, 28, [8]);
+                ctx.fill();
+                ctx.stroke();
+                ctx.font = "16px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(weapon.icon, width - 24, 26);
+            }
+
+            const captionEl = document.getElementById('avatarCaption');
+            if (race || charClass) {
+                captionEl.textContent = `${race ? race.name : 'Mortal'} ${charClass ? '• ' + charClass.name : ''} [Rank ${rankObj.rank}]`;
+            } else {
+                captionEl.textContent = "Aguardando sorteio de identidade...";
+            }
+        }
+
+        function spinSingleWheel(wheelId) {
+            return new Promise((resolve) => {
+                const wheel = appState.wheels[wheelId];
+                if (!wheel || wheel.spinning || wheel.locked) {
+                    resolve();
+                    return;
+                }
+
+                // Se tentar girar Hab. Primária ou Secundária sem ter um Poder Base sorteado, avisa o usuário
+                if ((wheelId === 'power2' || wheelId === 'power3') && appState.wheels.power1.selectedIndex === null) {
+                    showToast("Gire o Poder Base primeiro para liberar suas habilidades!", "warning");
+                    resolve();
+                    return;
+                }
+
+                wheel.spinning = true;
+                updateWheelControlsUI(wheelId);
+
+                const numSlices = wheel.items.length;
+                const arc = (2 * Math.PI) / numSlices;
+                const winningIndex = Math.floor(Math.random() * numSlices);
+
+                const sliceCenterOffset = winningIndex * arc + arc / 2;
+                const targetBaseAngle = -Math.PI / 2 - sliceCenterOffset;
+
+                const extraSpins = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+                const jitter = (Math.random() - 0.5) * (arc * 0.5);
+
+                const startAngle = wheel.currentAngle % (2 * Math.PI);
+                let deltaAngle = (targetBaseAngle - startAngle) % (2 * Math.PI);
+                if (deltaAngle < 0) deltaAngle += 2 * Math.PI;
+
+                const totalRotation = extraSpins + deltaAngle + jitter;
+                const duration = 1850 + Math.random() * 500;
+                const startTime = performance.now();
+                let lastSlicePassed = -1;
+
+                function animate(now) {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOut = 1 - Math.pow(1 - progress, 3.5);
+                    wheel.currentAngle = startAngle + totalRotation * easeOut;
+
+                    const currentSlice = Math.floor(((wheel.currentAngle % (2 * Math.PI)) + 2 * Math.PI) / arc) % numSlices;
+                    if (currentSlice !== lastSlicePassed) {
+                        lastSlicePassed = currentSlice;
+                        playTickSound();
+                    }
+
+                    drawWheel(wheel);
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        wheel.spinning = false;
+                        wheel.selectedIndex = winningIndex;
+                        playWinSound();
+                        updateWheelControlsUI(wheelId);
+
+                        // Se acabou de girar o Poder Base, atualiza as roletas de Habilidades!
+                        if (wheelId === 'power1') {
+                            updateSkillWheelsForBasePower(wheel.items[winningIndex]);
+                        }
+
+                        updateCharacterSheet();
+                        resolve();
+                    }
+                }
+
+                requestAnimationFrame(animate);
+            });
+        }
+
+        async function spinWheelsBatch(wheelsList, successMsg) {
+            if (appState.isSpinningAll) return;
+
+            const unlocked = wheelsList.filter(w => !w.locked);
+            if (unlocked.length === 0) {
+                showToast("Todas as roletas selecionadas estão travadas!", "warning");
+                return;
+            }
+
+            appState.isSpinningAll = true;
+            const spinAllBtn = document.getElementById('spinAllBtn');
+            spinAllBtn.classList.add('opacity-60', 'pointer-events-none');
+
+            // Separa o Poder Base para girar antes de Hab. Primária e Hab. Secundária
+            const hasPower1 = unlocked.some(w => w.id === 'power1');
+            const initialBatch = unlocked.filter(w => w.id !== 'power2' && w.id !== 'power3');
+            const dependentSkills = unlocked.filter(w => w.id === 'power2' || w.id === 'power3');
+
+            const initialPromises = initialBatch.map((wheel, idx) => {
+                return new Promise(res => {
+                    setTimeout(() => {
+                        spinSingleWheel(wheel.id).then(res);
+                    }, idx * 65);
+                });
+            });
+
+            await Promise.all(initialPromises);
+
+            // Agora que o Poder Base já parou e atualizou as fatias, gira Hab. Primária e Secundária
+            if (dependentSkills.length > 0 && (hasPower1 || appState.wheels.power1.selectedIndex !== null)) {
+                const skillPromises = dependentSkills.map((wheel, idx) => {
+                    return new Promise(res => {
+                        setTimeout(() => {
+                            spinSingleWheel(wheel.id).then(res);
+                        }, idx * 65);
+                    });
+                });
+                await Promise.all(skillPromises);
+            }
+
+            appState.isSpinningAll = false;
+            spinAllBtn.classList.remove('opacity-60', 'pointer-events-none');
+            showToast(successMsg, "success");
+        }
+
+        function spinAllRoulettes() {
+            spinWheelsBatch(Object.values(appState.wheels), "Todas as 16 roletas foram giradas!");
+        }
+
+        function spinCategory(type) {
+            const list = Object.values(appState.wheels).filter(w => w.type === type);
+            const msg = type === 'identity' ? "Identidade & Habilidades sorteadas!" : "Os 8 Atributos Base foram sorteados!";
+            spinWheelsBatch(list, msg);
+        }
+
+        function toggleLock(wheelId) {
+            const wheel = appState.wheels[wheelId];
+            if (wheel.spinning) return;
+
+            wheel.locked = !wheel.locked;
+            updateWheelControlsUI(wheelId);
+            drawWheel(wheel);
+        }
+
+        function unlockAllWheels() {
+            Object.values(appState.wheels).forEach(wheel => {
+                wheel.locked = false;
+                updateWheelControlsUI(wheel.id);
+                drawWheel(wheel);
+            });
+            showToast("Todas as 16 roletas foram destravadas!", "info");
+        }
+
+        function updateWheelControlsUI(wheelId) {
+            const wheel = appState.wheels[wheelId];
+            const card = document.getElementById(`card-${wheelId}`);
+            const lockBtn = document.getElementById(`lockBtn-${wheelId}`);
+            const spinBtn = document.getElementById(`spinBtn-${wheelId}`);
+            const resultBadge = document.getElementById(`resultBadge-${wheelId}`);
+            const bonusSubBadge = document.getElementById(`bonusSubBadge-${wheelId}`);
+
+            if (wheel.locked) {
+                card.classList.add('border-amber-500/65');
+                lockBtn.innerHTML = '🔒';
+                lockBtn.classList.add('bg-amber-500/20', 'text-amber-300', 'border', 'border-amber-500/40');
+                spinBtn.disabled = true;
+                spinBtn.classList.add('opacity-40', 'cursor-not-allowed');
+            } else {
+                card.classList.remove('border-amber-500/65');
+                lockBtn.innerHTML = '🔓';
+                lockBtn.classList.remove('bg-amber-500/20', 'text-amber-300', 'border', 'border-amber-500/40');
+                spinBtn.disabled = wheel.spinning;
+                spinBtn.classList.toggle('opacity-40', wheel.spinning);
+                spinBtn.classList.toggle('cursor-not-allowed', wheel.spinning);
+            }
+
+            if (wheel.spinning) {
+                resultBadge.textContent = "Girando...";
+                resultBadge.className = "w-full text-center py-1 px-2 rounded-lg bg-purple-950/60 border border-purple-500/40 text-[11px] font-bold text-purple-300 animate-pulse truncate";
+                bonusSubBadge.textContent = "...";
+            } else if (wheel.selectedIndex !== null) {
+                const item = wheel.items[wheel.selectedIndex];
+                if (wheel.type === 'stat') {
+                    resultBadge.textContent = `Tier ${item.name} (${item.value})`;
+                    bonusSubBadge.textContent = `Base +${item.value} pts`;
+                    bonusSubBadge.className = "w-full text-center text-[9px] font-code text-amber-400 truncate min-h-[14px]";
+                } else {
+                    resultBadge.textContent = `${item.icon} ${item.name}`;
+                    bonusSubBadge.textContent = formatBonusSummary(item.bonus);
+                    bonusSubBadge.className = "w-full text-center text-[9px] font-code text-emerald-400 truncate min-h-[14px]";
+                }
+                resultBadge.className = "w-full text-center py-1 px-2 rounded-lg bg-[#0a0a12] border border-emerald-500/45 text-[11px] font-bold text-emerald-300 truncate";
+            } else {
+                resultBadge.textContent = "Aguardando giro...";
+                resultBadge.className = "w-full text-center py-1 px-2 rounded-lg bg-[#0a0a12] border border-slate-800 text-[11px] font-bold text-slate-400 truncate";
+                bonusSubBadge.textContent = "—";
+                bonusSubBadge.className = "w-full text-center text-[9px] font-code text-slate-500 truncate min-h-[14px]";
+            }
+        }
+
+        function getSelectedItem(wheelKey) {
+            const w = appState.wheels[wheelKey];
+            return w && w.selectedIndex !== null ? w.items[w.selectedIndex] : null;
+        }
+
+        function updateCharacterSheet() {
+            const race = getSelectedItem('race');
+            const family = getSelectedItem('family');
+            const charClass = getSelectedItem('charClass');
+            const power1 = getSelectedItem('power1');
+            const power2 = getSelectedItem('power2');
+            const power3 = getSelectedItem('power3');
+            const weapon = getSelectedItem('weapon');
+            const weakness = getSelectedItem('weakness');
+
+            const titleBadge = document.getElementById('autoTitleBadge');
+            if (race || family || charClass || power1) {
+                const rPart = race ? race.titlePrefix : "Guerreiro";
+                const fPart = family ? family.suffix : "";
+                const cPart = charClass ? charClass.name : "";
+                const pPart = power1 ? power1.suffix : "";
+                titleBadge.textContent = `« ${[rPart, fPart, cPart, pPart].filter(Boolean).join(' ')} »`;
+            } else {
+                titleBadge.textContent = "« Viajante Sem Destino »";
+            }
+
+            document.getElementById('sheetRaceIcon').textContent = race ? race.icon : '🧬';
+            document.getElementById('sheetRaceName').textContent = race ? race.name : '—';
+            document.getElementById('sheetRaceBonus').textContent = race ? formatBonusSummary(race.bonus) : '—';
+
+            document.getElementById('sheetFamilyIcon').textContent = family ? family.icon : '🏯';
+            document.getElementById('sheetFamilyName').textContent = family ? family.name : '—';
+            document.getElementById('sheetFamilyBonus').textContent = family ? formatBonusSummary(family.bonus) : '—';
+
+            document.getElementById('sheetClassIcon').textContent = charClass ? charClass.icon : '⚔️';
+            document.getElementById('sheetClassName').textContent = charClass ? charClass.name : '—';
+            document.getElementById('sheetClassBonus').textContent = charClass ? formatBonusSummary(charClass.bonus) : '—';
+
+            document.getElementById('sheetPower1Icon').textContent = power1 ? power1.icon : '✨';
+            document.getElementById('sheetPower1Name').textContent = power1 ? power1.name : 'Poder Base';
+            document.getElementById('sheetPower1Bonus').textContent = power1 ? formatBonusSummary(power1.bonus) : 'Aguardando giro';
+
+            document.getElementById('sheetPower2Icon').textContent = power2 ? power2.icon : '🔥';
+            document.getElementById('sheetPower2Name').textContent = power2 ? power2.name : 'Hab. Primária';
+            document.getElementById('sheetPower2Bonus').textContent = power2 ? formatBonusSummary(power2.bonus) : 'Aguardando giro';
+
+            document.getElementById('sheetPower3Icon').textContent = power3 ? power3.icon : '🌀';
+            document.getElementById('sheetPower3Name').textContent = power3 ? power3.name : 'Hab. Secundária';
+            document.getElementById('sheetPower3Bonus').textContent = power3 ? formatBonusSummary(power3.bonus) : 'Aguardando giro';
+
+            document.getElementById('sheetWeaponIcon').textContent = weapon ? weapon.icon : '🗡️';
+            document.getElementById('sheetWeaponName').textContent = weapon ? weapon.name : 'Arma / Relíquia';
+            document.getElementById('sheetWeaponBonus').textContent = weapon ? formatBonusSummary(weapon.bonus) : 'Aguardando giro';
+
+            document.getElementById('sheetWeaknessIcon').textContent = weakness ? weakness.icon : '⛓️';
+            document.getElementById('sheetWeaknessName').textContent = weakness ? weakness.name : 'Fraqueza / Maldição';
+            document.getElementById('sheetWeaknessBonus').textContent = weakness ? formatBonusSummary(weakness.bonus) : 'Aguardando giro';
+
+            const statConfigs = [
+                { key: 'qi', label: 'QI', icon: '🧠', barColor: 'from-blue-500 to-cyan-400' },
+                { key: 'battleIq', label: 'QI de Batalha', icon: '🎯', barColor: 'from-purple-500 to-fuchsia-400' },
+                { key: 'str', label: 'Força Física', icon: '💪', barColor: 'from-red-500 to-orange-400' },
+                { key: 'spd', label: 'Velocidade', icon: '⚡', barColor: 'from-amber-400 to-yellow-300' },
+                { key: 'res', label: 'Resistência', icon: '🛡️', barColor: 'from-emerald-500 to-teal-400' },
+                { key: 'energy', label: 'Energia / Mana', icon: '🔮', barColor: 'from-indigo-500 to-violet-400' },
+                { key: 'ctrl', label: 'Controle Energia', icon: '💠', barColor: 'from-cyan-400 to-sky-300' },
+                { key: 'luck', label: 'Sorte / Carisma', icon: '🍀', barColor: 'from-pink-500 to-rose-400' }
+            ];
+
+            const identitySources = [race, family, charClass, power1, power2, power3, weapon, weakness];
+            let totalPower = 0;
+            const computedStats = [];
+            const attributesContainer = document.getElementById('attributesDisplayList');
+            attributesContainer.innerHTML = '';
+
+            statConfigs.forEach(cfg => {
+                const statWheel = appState.wheels[cfg.key];
+                const baseTier = statWheel.selectedIndex !== null ? statWheel.items[statWheel.selectedIndex] : null;
+                const baseVal = baseTier ? baseTier.value : 0;
+
+                const bonusVal = identitySources.reduce((acc, src) => acc + (src ? (src.bonus[cfg.key] || 0) : 0), 0);
+                const finalVal = Math.max(0, baseVal + bonusVal);
+                totalPower += finalVal;
+                computedStats.push({ label: cfg.label, value: finalVal });
+
+                const percentage = Math.min(100, Math.round((finalVal / 200) * 100));
+                const bonusFormatted = bonusVal >= 0 ? `+${bonusVal}` : `${bonusVal}`;
+                const bonusColorClass = bonusVal > 0 ? 'text-emerald-400' : (bonusVal < 0 ? 'text-rose-400' : 'text-slate-500');
+
+                const row = document.createElement('div');
+                row.className = 'flex flex-col gap-0.5';
+                row.innerHTML = `
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="font-semibold text-slate-200 flex items-center gap-1 truncate">
+                            <span>${cfg.icon}</span>
+                            <span class="truncate">${cfg.label}</span>
+                            ${baseTier ? `<span class="font-code text-[9px] px-1 rounded bg-slate-800 text-amber-300 border border-slate-700">${baseTier.name}</span>` : ''}
+                        </span>
+                        <div class="font-code text-[10px] flex items-center gap-1 shrink-0">
+                            <span class="text-slate-400">${baseVal}</span>
+                            <span class="${bonusColorClass} font-bold">(${bonusFormatted})</span>
+                            <span class="text-slate-500">=</span>
+                            <span class="font-extrabold text-xs text-white">${finalVal}</span>
+                        </div>
+                    </div>
+                    <div class="w-full h-1.5 bg-[#131322] rounded-full overflow-hidden border border-slate-800/80">
+                        <div class="h-full bg-gradient-to-r ${cfg.barColor} rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                attributesContainer.appendChild(row);
+            });
+
+            document.getElementById('totalPowerValue').textContent = totalPower;
+            const rankInfo = calculateOverallRank(totalPower);
+            document.getElementById('overallRankBadge').textContent = rankInfo.rank;
+            document.getElementById('rankTitleLabel').textContent = rankInfo.label;
+
+            renderSvgRadar(computedStats);
+            drawDynamicAvatar();
+        }
+
+        function renderSvgRadar(stats) {
+            const svg = document.getElementById('statsRadarSvg');
+            if (!svg) return;
+
+            const cx = 150;
+            const cy = 132;
+            const maxR = 82;
+            const maxVal = 200;
+            const sides = stats.length;
+            let svgContent = '';
+
+            for (let level = 1; level <= 4; level++) {
+                const r = (maxR / 4) * level;
+                const pts = [];
+                for (let i = 0; i < sides; i++) {
+                    const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+                    pts.push(`${(cx + r * Math.cos(angle)).toFixed(1)},${(cy + r * Math.sin(angle)).toFixed(1)}`);
+                }
+                svgContent += `<polygon points="${pts.join(' ')}" fill="none" stroke="rgba(148,163,184,0.2)" stroke-width="1"/>`;
+            }
+
+            const polyPoints = [];
+            const dots = [];
+
+            for (let i = 0; i < sides; i++) {
+                const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+                const xAxis = cx + maxR * Math.cos(angle);
+                const yAxis = cy + maxR * Math.sin(angle);
+                svgContent += `<line x1="${cx}" y1="${cy}" x2="${xAxis.toFixed(1)}" y2="${yAxis.toFixed(1)}" stroke="rgba(148,163,184,0.2)" stroke-width="1"/>`;
+
+                const labelR = maxR + 24;
+                const lx = cx + labelR * Math.cos(angle);
+                const ly = cy + labelR * Math.sin(angle);
+                const shortName = stats[i].label.split(' ')[0];
+                svgContent += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#cbd5e1" font-size="9.5" font-weight="700" font-family="Inter, sans-serif" text-anchor="middle" dominant-baseline="middle">${shortName} (${stats[i].value})</text>`;
+
+                const ratio = Math.min(1, stats[i].value / maxVal);
+                const vx = cx + maxR * ratio * Math.cos(angle);
+                const vy = cy + maxR * ratio * Math.sin(angle);
+                polyPoints.push(`${vx.toFixed(1)},${vy.toFixed(1)}`);
+                dots.push(`<circle cx="${vx.toFixed(1)}" cy="${vy.toFixed(1)}" r="3.5" fill="#fbbf24" stroke="#0a0a12" stroke-width="1"/>`);
+            }
+
+            svgContent += `<polygon points="${polyPoints.join(' ')}" fill="rgba(168,85,247,0.35)" stroke="#38bdf8" stroke-width="2"/>`;
+            svgContent += dots.join('');
+            svg.innerHTML = svgContent;
+        }
+
+        function calculateOverallRank(total) {
+            if (total === 0) return { rank: "—", label: "Iniciante" };
+            if (total < 300) return { rank: "F", label: "Novato" };
+            if (total < 420) return { rank: "E", label: "Aprendiz" };
+            if (total < 540) return { rank: "D", label: "Combatente" };
+            if (total < 660) return { rank: "C", label: "Veterano" };
+            if (total < 780) return { rank: "B", label: "Elite" };
+            if (total < 900) return { rank: "A", label: "Mestre" };
+            if (total < 1020) return { rank: "S", label: "Lenda" };
+            if (total < 1140) return { rank: "SS", label: "Calamidade" };
+            if (total < 1260) return { rank: "SSS", label: "Transcendente" };
+            return { rank: "SSS+", label: "Divino" };
+        }
+
+        function copyCharacterSheet() {
+            const name = document.getElementById('charNameInput').value.trim() || "Guerreiro Sem Nome";
+            const autoTitle = document.getElementById('autoTitleBadge').textContent.trim();
+            const rank = document.getElementById('overallRankBadge').textContent.trim();
+            const rankLabel = document.getElementById('rankTitleLabel').textContent.trim();
+            const totalPower = document.getElementById('totalPowerValue').textContent.trim();
+
+            const race = getSelectedItem('race');
+            const family = getSelectedItem('family');
+            const charClass = getSelectedItem('charClass');
+            const p1 = getSelectedItem('power1');
+            const p2 = getSelectedItem('power2');
+            const p3 = getSelectedItem('power3');
+            const weapon = getSelectedItem('weapon');
+            const weakness = getSelectedItem('weakness');
+
+            const identitySources = [race, family, charClass, p1, p2, p3, weapon, weakness];
+
+            const getStatLine = (key, label) => {
+                const w = appState.wheels[key];
+                const base = w.selectedIndex !== null ? w.items[w.selectedIndex].value : 0;
+                const bonus = identitySources.reduce((acc, src) => acc + (src ? (src.bonus[key] || 0) : 0), 0);
+                const final = Math.max(0, base + bonus);
+                return `• ${label}: ${final} (Base ${base} ${bonus >= 0 ? '+' + bonus : bonus})`;
+            };
+
+            const sheetText = [
+                `⚔️ FICHA DE PERSONAGEM DE ANIME ⚔️`,
+                `Nome: ${name} ${autoTitle}`,
+                `Rank Geral: [ ${rank} - ${rankLabel} ] | BP Total: ${totalPower}`,
+                `------------------------------------------`,
+                `🧬 Raça: ${race ? race.name : 'Não sorteado'}`,
+                `🏯 Família / Clã: ${family ? family.name : 'Não sorteado'}`,
+                `⚔️ Classe: ${charClass ? charClass.name : 'Não sorteado'}`,
+                `✨ Poder Base: ${p1 ? `${p1.name} (${formatBonusSummary(p1.bonus)})` : 'Nenhum'}`,
+                `🔥 Hab. Primária: ${p2 ? `${p2.name} (${formatBonusSummary(p2.bonus)})` : 'Nenhuma'}`,
+                `🌀 Hab. Secundária: ${p3 ? `${p3.name} (${formatBonusSummary(p3.bonus)})` : 'Nenhuma'}`,
+                `🗡️ Arma / Relíquia: ${weapon ? `${weapon.name} (${formatBonusSummary(weapon.bonus)})` : 'Nenhuma'}`,
+                `⛓️ Fraqueza / Maldição: ${weakness ? `${weakness.name} (${formatBonusSummary(weakness.bonus)})` : 'Nenhuma'}`,
+                `------------------------------------------`,
+                `📊 OS 8 ATRIBUTOS FINAIS:`,
+                getStatLine('qi', 'QI'),
+                getStatLine('battleIq', 'QI de Batalha'),
+                getStatLine('str', 'Força Física'),
+                getStatLine('spd', 'Velocidade'),
+                getStatLine('res', 'Resistência'),
+                getStatLine('energy', 'Energia / Mana'),
+                getStatLine('ctrl', 'Controle de Energia'),
+                getStatLine('luck', 'Sorte / Carisma')
+            ].join('\n');
+
+            const textarea = document.createElement('textarea');
+            textarea.value = sheetText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("Ficha completa copiada para a área de transferência!", "success");
+            } catch (err) {
+                showToast("Não foi possível copiar automaticamente.", "warning");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function resetCharacter() {
+            Object.values(appState.wheels).forEach(wheel => {
+                if (wheel.spinning) return;
+                wheel.selectedIndex = null;
+                wheel.locked = false;
+                wheel.currentAngle = 0;
+            });
+            updateSkillWheelsForBasePower(null);
+            Object.values(appState.wheels).forEach(wheel => {
+                updateWheelControlsUI(wheel.id);
+                drawWheel(wheel);
+            });
+            updateCharacterSheet();
+            showToast("Todas as 16 roletas foram resetadas.", "info");
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-950/95 border-emerald-500/60 text-emerald-200',
+                warning: 'bg-amber-950/95 border-amber-500/60 text-amber-200',
+                info: 'bg-[#131322]/95 border-purple-500/60 text-purple-200'
+            };
+
+            toast.className = `px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 ${colors[type] || colors.info}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        window.addEventListener('resize', resizeAndDrawAllCanvases);
+        window.onload = function () {
+            buildWheelCards();
+            updateCharacterSheet();
+        };
+    </script>
+</body>
+</html>

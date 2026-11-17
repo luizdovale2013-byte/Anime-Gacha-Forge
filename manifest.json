@@ -1,0 +1,21 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Anime Gacha Forge",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Gacha Forge",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "com.meujogo.animegacha",
+  "description": "Um aplicativo de roletas e árvore de habilidades para criar e personalizar personagens de anime."
+}
